@@ -1,14 +1,11 @@
 from constants import Constants as Kt
 
-# Numeric Numpy library
-import numpy as np
-
 # Library to plot the LED patter, SPD and responsivity
 import matplotlib.pyplot as plt
 
-from scipy import stats
+import numpy as np
 
-import luxpy as lx
+from numpy import loadtxt
 
 
 class Surface:
@@ -35,17 +32,16 @@ class Surface:
         if not (isinstance(self._normal, np.ndarray)) or self._normal.size != 3:
             raise ValueError("Normal must be an 1d-numpy array [x y z] dtype= float or int.")        
 
-        self._reflectance = reflectance
-        # define the modulation
+        self._reflectance = reflectance        
         if self._reflectance == 'plaster':
             # load the spectral reflectance of Plaster material
             self._surface_reflectance = loadtxt(
-                    "tests/walls_reflectance/Interp_ReflecPlaster.txt"
+                    Kt.REFLECTANCE_PATH+'Interp_ReflecPlaster.txt'
                 )            
         elif self._reflectance == 'floor':
             # load the spectral reflectance of Plaster material
             self._surface_reflectance = loadtxt(
-                "tests/walls_reflectance/Interp_ReflecFloor.txt"
+                Kt.REFLECTANCE_PATH+'Interp_ReflecFloor.txt'
                 )
         else:
             raise ValueError("Reflectance name is not valid.")
@@ -90,17 +86,16 @@ class Surface:
 
     @reflectance.setter
     def reflectance(self, reflectance):
-        self._reflectance = reflectance
-        # define the modulation
+        self._reflectance = reflectance        
         if self._reflectance == 'plaster':
             # load the spectral reflectance of Plaster material
             self._surface_reflectance = loadtxt(
-                    "tests/walls_reflectance/Interp_ReflecPlaster.txt"
+                    Kt.REFLECTANCE_PATH+'Interp_ReflecPlaster.txt'
                 )            
         elif self._reflectance == 'floor':
-            # load the spectral reflectance of Floor material
+            # load the spectral reflectance of Plaster material
             self._surface_reflectance = loadtxt(
-                "tests/walls_reflectance/Interp_ReflecFloor.txt"
+                Kt.REFLECTANCE_PATH+'Interp_ReflecFloor.txt'
                 )
         else:
             raise ValueError("Reflectance name is not valid.")
@@ -133,3 +128,35 @@ class Surface:
             
         )
     
+    def plot_reflectance(self) -> None:
+        plt.plot(
+            self._surface_reflectance[:, 0],
+            self._surface_reflectance[:, 1],
+            color='black',
+            linestyle='solid',
+            label='Walls-Reflectance'
+            )        
+
+        #plt.title("Spectral Response of LEDs and Detectors", fontsize=20)
+        plt.legend(
+            loc='upper right',
+            fontsize=14,
+            ncol=1,
+            # bbox_to_anchor=[0, 1],
+            # shadow=True, 
+            # fancybox=True
+            )
+        plt.xticks(
+            # rotation=90,
+            fontsize=18
+            )
+        plt.yticks(
+            # rotation=90,
+            fontsize=18
+            )        
+        plt.xlabel("Wavelength [nm]", fontsize=20)
+        plt.ylabel("Relative Response",  fontsize=20)
+        plt.grid()
+        plt.xlim([400, 700])
+        plt.ylim([0, 1.15])
+        plt.show()

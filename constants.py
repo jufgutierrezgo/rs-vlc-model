@@ -17,15 +17,9 @@ class Constants:
     # directory root of the project
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     # directory to save channel impulse response raw data
-    SENSOR_PATH = ROOT_DIR + "/sensors/"
-    # directory to save histograms and graphs
-    REPORT_PATH = ROOT_DIR + "/report/"
-    # directory of tests
-    TEST_PATH = ROOT_DIR + "/tests/"
+    REFLECTANCE_PATH = ROOT_DIR + "/surface_reflectances/"
     # Numbers of LED (Transmission channels)
-    NO_LEDS = 3
-    # Numbers of Photodetector Channels
-    NO_DETECTORS = 3
+    NO_LEDS = 3    
     # Speed of light
     SPEED_OF_LIGHT = 299792458
     # IEEE 16-CSK constellation
