@@ -15,7 +15,7 @@ transmitter = Transmitter(
         modulation='ieee16',
         luminous_flux=5000
     )
-transmitter.plot_spd_normalized
+transmitter.plot_spd_normalized()
 
 surface = Surface(
     name="surfacePlaster",
