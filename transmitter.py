@@ -1,7 +1,4 @@
-import sys
-sys.path.insert(1, '/home/juanpc/python_phd/cruft_sample/python-vlc-rm/src')
-
-from vlc_rm.constants import Constants as Kt
+from constants import Constants as Kt
 
 # Numeric Numpy library
 import numpy as np
