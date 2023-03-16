@@ -118,13 +118,9 @@ class Surface:
             f'Name: {self._name}\n'
             f'Position [x y z]: {self._position} \n'
             f'Normal Vector [x y z]: {self._normal} \n'
-            f'Lambert Number: {self._mlambert} \n'            
-            f'Central Wavelengths [nm]: {self._wavelengths} \n'
-            f'FWHM [nm]: {self._fwhm}\n'
-            f'Luminous Flux [lm]: {self._luminous_flux}\n'
-            f'ILER [W/lm]: \n {self._iler_matrix} \n'
-            f'Average Power per Channel Color: \n {self._luminous_flux*self._avg_power} \n'
-            f'Total Power emmited by the Transmitter [W]: \n {self._total_power} \n'
+            f'Reflectance Material: {self._reflectance} \n'
+            f'Size [x y]: {self._size} \n'
+            
             
         )
     
