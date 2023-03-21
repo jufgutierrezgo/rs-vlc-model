@@ -119,10 +119,8 @@ class Surface:
             f'Position [x y z]: {self._position} \n'
             f'Normal Vector [x y z]: {self._normal} \n'
             f'Reflectance Material: {self._reflectance} \n'
-            f'Size [x y]: {self._size} \n'
-            
-            
-        )
+            f'Size [x y]: {self._size} \n'                     
+            )
     
     def plot_reflectance(self) -> None:
         plt.plot(
