@@ -19,8 +19,10 @@ class Surface:
         position: np.ndarray,
         normal: np.ndarray,
         reflectance: str,
-        width: float,
-        length: float        
+        vertex1: np.ndarray,
+        vertex2: np.ndarray,
+        vertex3: np.ndarray,
+        vertex4: np.ndarray
             ) -> None:
 
         self._name = name
@@ -47,15 +49,22 @@ class Surface:
         else:
             raise ValueError("Reflectance name is not valid.")
 
-        self._width = width
-        if self._width < 0:
-            raise ValueError(
-                "The width must be non-negative.")
-
-        self._length = length
-        if self._length < 0:
-            raise ValueError(
-                "The length must be non-negative.")
+        
+        self._vertex1 = np.array(vertex1, dtype=np.float32)
+        if self._vertex1.size != 3:
+            raise ValueError("Vertex1 must be an 1d-numpy array [x y z].")
+        
+        self._vertex2 = np.array(vertex2, dtype=np.float32)
+        if self._vertex2.size != 3:
+            raise ValueError("Vertex2 must be an 1d-numpy array [x y z].")
+        
+        self._vertex3 = np.array(vertex3, dtype=np.float32)
+        if self._vertex3.size != 3:
+            raise ValueError("Vertex3 must be an 1d-numpy array [x y z].")
+        
+        self._vertex4 = np.array(vertex4, dtype=np.float32)
+        if self._vertex4.size != 3:
+            raise ValueError("Vertex4 must be an 1d-numpy array [x y z].")
 
     @property
     def name(self) -> str:
@@ -160,3 +169,18 @@ class Surface:
         plt.xlim([400, 700])
         plt.ylim([0, 1.15])
         plt.show()
+
+    def _group_vertices(self) -> None:
+        self._vertices =  np.concatenate((
+                [self._vertex1],
+                [self._vertex2],
+                [self._vertex3],
+                [self._vertex4]
+                ), 
+                axis=0    
+            )
+
+        # print(self._vertices)
+        
+        
+
