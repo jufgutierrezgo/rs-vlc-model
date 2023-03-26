@@ -19,7 +19,8 @@ class Surface:
         position: np.ndarray,
         normal: np.ndarray,
         reflectance: str,
-        size: np.ndarray        
+        width: float,
+        length: float        
             ) -> None:
 
         self._name = name
@@ -46,11 +47,15 @@ class Surface:
         else:
             raise ValueError("Reflectance name is not valid.")
 
-        self._size = np.array(size)
-        if self._size.size != 2:
+        self._width = width
+        if self._width < 0:
             raise ValueError(
-                "Size of the rectangular surface must be an 1d-numpy array [x y]")
+                "The width must be non-negative.")
 
+        self._length = length
+        if self._length < 0:
+            raise ValueError(
+                "The length must be non-negative.")
 
     @property
     def name(self) -> str:
@@ -128,7 +133,7 @@ class Surface:
             self._surface_reflectance[:, 1],
             color='black',
             linestyle='solid',
-            label='Walls-Reflectance'
+            label='Surface-Reflectance'
             )        
 
         #plt.title("Spectral Response of LEDs and Detectors", fontsize=20)
@@ -142,14 +147,15 @@ class Surface:
             )
         plt.xticks(
             # rotation=90,
-            fontsize=18
+            fontsize=10
             )
         plt.yticks(
             # rotation=90,
-            fontsize=18
-            )        
-        plt.xlabel("Wavelength [nm]", fontsize=20)
-        plt.ylabel("Relative Response",  fontsize=20)
+            fontsize=10
+            )
+        plt.title("Reflectance of the surface", fontsize=20)        
+        plt.xlabel("Wavelength [nm]", fontsize=15)
+        plt.ylabel("Relative Response",  fontsize=15)
         plt.grid()
         plt.xlim([400, 700])
         plt.ylim([0, 1.15])
