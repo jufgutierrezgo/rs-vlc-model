@@ -66,8 +66,8 @@ class Surface:
         if self._vertex4.size != 3:
             raise ValueError("Vertex4 must be an 1d-numpy array [x y z].")
 
-    #create an array with the four vertices
-    self._group_vertices()
+        #create an array with the four vertices
+        self._group_vertices()
 
     @property
     def name(self) -> str:

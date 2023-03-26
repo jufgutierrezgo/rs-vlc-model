@@ -6,11 +6,19 @@ import numpy as np
 # Library to plot the LED patter, SPD and responsivity
 import matplotlib.pyplot as plt
 
+import sys
+sys.path.insert(0, '/home/juanpc/python_phd/camera-models')
+
+# import camera module
+from camera_models import *  # our package
+
 
 class Camera:
     """
     This class defines the camera properties
     """
+
+    _DECIMALS = 2  # how many decimal places to use in print
 
     def __init__(
         self,
@@ -77,3 +85,18 @@ class Camera:
         self._image_width = image_width
         if self._image_width <= 0:
             raise ValueError("The IMAGE WIDTH must be non-negative.")
+        
+
+        self._calibration_kwargs = {"f": self._focal_length, "px": self._px, "py": self._py, "mx": self._mx, "my": self._my}
+        self._rotation_kwargs = {"theta_x": self._theta_x, "theta_y": self._theta_y, "theta_z": self._theta_z}
+        self._projection_kwargs = {**self._calibration_kwargs, **self._rotation_kwargs, "C": self._centre}
+
+    def get_matrix(self) -> None:
+
+        K = get_calibration_matrix(**self._calibration_kwargs)
+        print("Calibration matrix (K):\n", K.round(self._DECIMALS))
+        R = get_rotation_matrix(**self._rotation_kwargs)
+        print("\nRotation matrix (R):\n", R.round(self._DECIMALS))
+        P = get_projection_matrix(**self._projection_kwargs)
+        print("\nProjection matrix (P):\n", P.round(self._DECIMALS))
+        

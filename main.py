@@ -1,7 +1,12 @@
 #Import module Transmitter
 from transmitter import Transmitter as Transmitter
+
 #Import module Surface
 from surface import Surface as Surface
+
+from camera import Camera as Camera
+
+import numpy as np
 
 
 
@@ -30,3 +35,33 @@ surface = Surface(
 surface.plot_reflectance()
 surface._group_vertices()
 
+FOCAL_LENGTH = 3.0  # focal length
+PX= 2.0  # principal point x-coordinate
+PY= 1.0  # principal point y-coordinate
+MX = 1.0  # number of pixels per unit distance in image coordinates in x direction
+MY = 1.0  # number of pixels per unit distance in image coordinates in y direction
+THETA_X = np.pi / 2.0  # roll angle
+THETA_Y = 0.0  # pitch angle
+THETA_Z = np.pi  # yaw angle
+C = np.array([3, -5, 2])  # camera centre
+IMAGE_HEIGTH = 4
+IMAGE_WIDTH = 6
+
+3125177177
+
+camera = Camera(
+    name="camera1",
+    focal_length=FOCAL_LENGTH,
+    px=PX,
+    py=PY,
+    mx=MX,
+    my=MY,
+    theta_x=THETA_X,
+    theta_y=THETA_Y,
+    theta_z=THETA_Z,
+    centre=C,
+    image_heigth=IMAGE_HEIGTH,
+    image_width=IMAGE_WIDTH
+)
+
+camera.get_matrix()
