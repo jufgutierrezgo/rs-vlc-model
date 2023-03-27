@@ -94,8 +94,12 @@ class Camera:
         if not type(surface) is Surface:
             raise ValueError(
                 "Surface attribute must be an object type Surface.")
+        
 
-    def _project_surface(self) -> None:
+        self._projected_points = self._project_surface()
+        print(self._projected_points)
+
+    def _project_surface(self) -> np.ndarray:
         
         calibration_kwargs = {"f": self._focal_length, "px": self._px, "py": self._py, "mx": self._mx, "my": self._my}
         rotation_kwargs = {"theta_x": self._theta_x, "theta_y": self._theta_y, "theta_z": self._theta_z}
@@ -147,25 +151,31 @@ class Camera:
             my=self._my,
         )
         image = Image(heigth=self._image_heigth, width=self._image_width)
-        square1 = Polygon(np.array([
-            [-1.0, 5.0, 4.0],
-            [1.0, 3.0, 5.0],
-            [1.0, 2.0, 2.0],
-            [-1.0, 4.0, 1.0],
-        ]))
-        square2 = Polygon(np.array([
-            [-2.0, 4.0, 5.0],
-            [2.0, 4.0, 5.0],
-            [2.0, 4.0, 1.0],
-            [-2.0, 4.0, 1.0],
-        ]))
+        polygon_surface = Polygon(self._surface._vertices)
+        # square1 = Polygon(np.array([
+        #    [-1.0, 5.0, 4.0],
+        #    [1.0, 3.0, 5.0],
+        #    [1.0, 2.0, 2.0],
+        #    [-1.0, 4.0, 1.0],
+        # ]))
+        # square2 = Polygon(np.array([
+        #    [-2.0, 4.0, 5.0],
+        #    [2.0, 4.0, 5.0],
+        #    [2.0, 4.0, 1.0],
+        #    [-2.0, 4.0, 1.0],
+        # ]))
 
 
         fig = plt.figure(figsize=(self._image_width, self._image_heigth))
         ax = fig.gca()
         image.draw()
-        square1.draw(**projection_kwargs)
-        square2.draw(**projection_kwargs, color="tab:purple")
+        polygon_surface.draw(**projection_kwargs)
+        
+        #square1.draw(**projection_kwargs)
+        #square2.draw(**projection_kwargs, color="tab:purple")
         ax.set_title("Projection of Squares in the Image")
         plt.tight_layout()
         plt.show()
+
+        return np.array(polygon_surface.x_list)
+
