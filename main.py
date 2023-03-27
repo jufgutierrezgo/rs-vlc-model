@@ -47,7 +47,6 @@ C = np.array([3, -5, 2])  # camera centre
 IMAGE_HEIGTH = 4
 IMAGE_WIDTH = 6
 
-3125177177
 
 camera = Camera(
     name="camera1",
@@ -64,4 +63,4 @@ camera = Camera(
     image_width=IMAGE_WIDTH
 )
 
-camera.get_matrix()
+camera._project_surface()

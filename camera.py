@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.insert(0, '/home/juanpc/python_phd/camera-models')
 
+#import surface module
+from surface import Surface as Surface
+
 # import camera module
 from camera_models import *  # our package
 
@@ -33,7 +36,8 @@ class Camera:
         theta_z: float,
         centre: np.ndarray,
         image_heigth: float,
-        image_width: float
+        image_width: float,
+        surface: Surface
             ) -> None:
 
         self._name = name
@@ -85,18 +89,83 @@ class Camera:
         self._image_width = image_width
         if self._image_width <= 0:
             raise ValueError("The IMAGE WIDTH must be non-negative.")
+
+        self._surface = surface             
+        if not type(surface) is Surface:
+            raise ValueError(
+                "Surface attribute must be an object type Surface.")
+
+    def _project_surface(self) -> None:
         
+        calibration_kwargs = {"f": self._focal_length, "px": self._px, "py": self._py, "mx": self._mx, "my": self._my}
+        rotation_kwargs = {"theta_x": self._theta_x, "theta_y": self._theta_y, "theta_z": self._theta_z}
+        projection_kwargs = {**calibration_kwargs, **rotation_kwargs, "C": self._centre}
 
-        self._calibration_kwargs = {"f": self._focal_length, "px": self._px, "py": self._py, "mx": self._mx, "my": self._my}
-        self._rotation_kwargs = {"theta_x": self._theta_x, "theta_y": self._theta_y, "theta_z": self._theta_z}
-        self._projection_kwargs = {**self._calibration_kwargs, **self._rotation_kwargs, "C": self._centre}
-
-    def get_matrix(self) -> None:
-
-        K = get_calibration_matrix(**self._calibration_kwargs)
+        K = get_calibration_matrix(**calibration_kwargs)
         print("Calibration matrix (K):\n", K.round(self._DECIMALS))
-        R = get_rotation_matrix(**self._rotation_kwargs)
+        R = get_rotation_matrix(**rotation_kwargs)
         print("\nRotation matrix (R):\n", R.round(self._DECIMALS))
-        P = get_projection_matrix(**self._projection_kwargs)
+        P = get_projection_matrix(**projection_kwargs)
         print("\nProjection matrix (P):\n", P.round(self._DECIMALS))
         
+        dx, dy, dz = np.eye(3)
+        world_frame = ReferenceFrame(
+            origin=np.zeros(3), 
+            dx=dx, 
+            dy=dy,
+            dz=dz,
+            name="World",
+        )
+        camera_frame = ReferenceFrame(
+            origin=self._centre, 
+            dx=R @ dx, 
+            dy=R @ dy,
+            dz=R @ dz,
+            name="Camera",
+        )
+        Z = PrincipalAxis(
+            camera_center=self._centre,
+            camera_dz=camera_frame.dz,
+            f=self._focal_length,
+        )
+
+        image_frame = ReferenceFrame(
+            origin=Z.p - camera_frame.dx * self._px - camera_frame.dy * self._py, 
+            dx=R @ dx, 
+            dy=R @ dy,
+            dz=R @ dz,
+            name="Image",
+        )
+
+        image_plane = ImagePlane(
+            origin=image_frame.origin, 
+            dx=image_frame.dx, 
+            dy=image_frame.dy, 
+            heigth=self._image_heigth,
+            width=self._image_width,
+            mx=self._mx,
+            my=self._my,
+        )
+        image = Image(heigth=self._image_heigth, width=self._image_width)
+        square1 = Polygon(np.array([
+            [-1.0, 5.0, 4.0],
+            [1.0, 3.0, 5.0],
+            [1.0, 2.0, 2.0],
+            [-1.0, 4.0, 1.0],
+        ]))
+        square2 = Polygon(np.array([
+            [-2.0, 4.0, 5.0],
+            [2.0, 4.0, 5.0],
+            [2.0, 4.0, 1.0],
+            [-2.0, 4.0, 1.0],
+        ]))
+
+
+        fig = plt.figure(figsize=(self._image_width, self._image_heigth))
+        ax = fig.gca()
+        image.draw()
+        square1.draw(**projection_kwargs)
+        square2.draw(**projection_kwargs, color="tab:purple")
+        ax.set_title("Projection of Squares in the Image")
+        plt.tight_layout()
+        plt.show()
