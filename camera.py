@@ -37,6 +37,8 @@ class Camera:
         centre: np.ndarray,
         image_heigth: float,
         image_width: float,
+        resolution_h: int,
+        resolution_w: int,
         surface: Surface
             ) -> None:
 
@@ -89,6 +91,16 @@ class Camera:
         self._image_width = image_width
         if self._image_width <= 0:
             raise ValueError("The IMAGE WIDTH must be non-negative.")
+        
+        # resolution height
+        self._resolution_h = resolution_h
+        if self._resolution_h <= 0:
+            raise ValueError("The RESOLUTION H must be an positive integer.")
+
+        # resolution width
+        self._resolution_w = resolution_w
+        if self._resolution_w <= 0:
+            raise ValueError("The RESOLUTION H must be an positive integer.")
 
         self._surface = surface             
         if not type(surface) is Surface:
@@ -165,12 +177,23 @@ class Camera:
         #    [-2.0, 4.0, 1.0],
         # ]))
 
+        fig = plt.figure(figsize=(6, 6))
+        ax = plt.axes(projection="3d")
+        world_frame.draw3d()
+        camera_frame.draw3d()
+        image_frame.draw3d()
+        Z.draw3d()
+        image_plane.draw3d()
+        polygon_surface.draw3d(pi=image_plane.pi, C=self._centre)        
+        ax.view_init(elev=45.0, azim=45.0)
+        ax.set_title("CCD Camera Geometry")
+        plt.tight_layout()
+        plt.show()
 
         fig = plt.figure(figsize=(self._image_width, self._image_heigth))
         ax = fig.gca()
         image.draw()
-        polygon_surface.draw(**projection_kwargs)
-        
+        polygon_surface.draw(**projection_kwargs)        
         #square1.draw(**projection_kwargs)
         #square2.draw(**projection_kwargs, color="tab:purple")
         ax.set_title("Projection of Squares in the Image")
