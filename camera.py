@@ -109,7 +109,12 @@ class Camera:
         
 
         self._projected_points = self._project_surface()
+        print("\n Projected Point onto Image Plane:")
         print(self._projected_points)
+        self._pixels_inside =  self._points_inside()
+        print("\n Pixels inside of the polygon:")
+        print(self._pixels_inside)
+        self.plot_binary_image(self._pixels_inside, self._resolution_h, self._resolution_w)
 
     def _project_surface(self) -> np.ndarray:
         
@@ -153,6 +158,16 @@ class Camera:
             name="Image",
         )
 
+        print("Bases of the Image frame")
+        print(image_frame.dx, image_frame.dy, image_frame.dz)
+        grid3d_image = self._grid3d_image_plane(
+            image_frame.dx, 
+            image_frame.dy,
+            image_frame.origin 
+            )
+        print(image_frame.origin)
+        print(grid3d_image)
+        
         image_plane = ImagePlane(
             origin=image_frame.origin, 
             dx=image_frame.dx, 
@@ -202,3 +217,111 @@ class Camera:
 
         return np.array(polygon_surface.x_list)
 
+    def _points_inside(self):
+        
+        # Compute the size of each cell
+        pixel_size_x = self._image_width / self._resolution_w
+        pixel_size_y = self._image_heigth / self._resolution_h
+
+        # Create a grid of cell centers
+        pixel_centers_x = np.linspace(
+            pixel_size_x/2, 
+            self._image_width-pixel_size_x/2, 
+            self._resolution_w
+            )
+        pixel_centers_y = np.linspace(
+            pixel_size_y/2, 
+            self._image_heigth-pixel_size_y/2, 
+            self._resolution_h
+            )
+        
+        pixel_centers_xx, pixel_centers_yy = np.meshgrid(pixel_centers_x, pixel_centers_y)
+        
+        # Display the cell centers
+        # print("Pixel's center X (meshgrid):")
+        # print(pixel_centers_xx)
+        # print("Pixel's center Y  (meshgrid):")
+        # print(pixel_centers_yy)
+
+        # poly_vertices = np.array([[1, 1], [3, 1], [3, 3], [1, 3]])
+        # print("Pixel's center X:")
+        # print(range(len(pixel_centers_x)))
+        # print("Pixel's center Y:")
+        # print(range(len(pixel_centers_y)))
+        
+        # Get points inside polygon
+        points_inside = []
+        pixels_inside = []
+        for i in range(len(pixel_centers_x)):
+            for j in range(len(pixel_centers_y)):                
+                if self._point_inside_polygon(
+                        pixel_centers_xx[j, i],
+                        pixel_centers_yy[j, i],
+                        self._projected_points):
+                    points_inside.append([pixel_centers_xx[j,i], pixel_centers_yy[j,i]])
+                    pixels_inside.append(np.array((j, i)))
+
+        points_inside = np.transpose(np.array(points_inside))
+        pixels_inside = np.transpose(np.array(pixels_inside))
+
+        #PLot area inside of the polygon
+        plt.scatter(pixel_centers_xx, pixel_centers_yy, s=1)
+        plt.scatter(points_inside[0, :], points_inside[1, :], s=1)
+        plt.show()
+        print("\n Points inside polygon:")
+        print(points_inside)
+        # print("Pixels inside polygon:")
+        # print(pixels_inside)
+
+        return pixels_inside
+
+    def _point_inside_polygon(self, x, y, poly):
+        """
+        Return True if the point x, y is inside the polygon defined 
+        by the list of vertices poly.
+        """
+
+        n = len(poly)
+        inside = False
+
+        p1x, p1y = poly[0]
+        for i in range(n+1):
+            p2x, p2y = poly[i % n]
+            if y > min(p1y, p2y):
+                if y <= max(p1y, p2y):
+                    if x <= max(p1x, p2x):
+                        if p1y != p2y:
+                            x_inters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                        if p1x == p2x or x <= x_inters:
+                            inside = not inside
+            p1x, p1y = p2x, p2y
+
+        return inside
+    
+    def plot_binary_image(self, pixels, heigth, width):
+        
+    
+        binary_image = np.zeros((heigth, width))
+        binary_image[pixels[0, :], pixels[1, :]] = 1
+
+        # Plot binary matrix
+        plt.imshow(binary_image, cmap='gray', interpolation='nearest')
+        plt.title("BInary image of the area projected")
+        # plt.scatter(pixels[1,:],pixels[0,:])
+        # plt.xlim([0, self._resolution_w])
+        # plt.ylim([0, self._resolution_h])
+        plt.show()
+    
+    def _grid3d_image_plane(self, dx, dy, origin) -> np.ndarray:
+        """
+        Return an array with the XYZ coordinates of the pixels in
+        the image plane.
+        """
+
+        grid3d_image_plane = np.zeros((self._image_width, self._image_heigth, 3))
+        
+        for i in range(self._image_width):
+            for j in range(self._image_heigth):
+                grid3d_image_plane[i, j, :] = origin + i*dx + j*dy + dx/2 + dy/2
+        
+        return grid3d_image_plane

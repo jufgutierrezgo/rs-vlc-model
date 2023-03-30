@@ -7,6 +7,8 @@ from camera import Camera as Camera
 
 import numpy as np
 
+
+
 transmitter = Transmitter(
         "Led1",
         position=[2.5, 2.5, 3],
@@ -33,19 +35,22 @@ surface = Surface(
 surface.plot_reflectance()
 surface._group_vertices()
 
-FOCAL_LENGTH = 3.0  # focal length
-PX= 2.0  # principal point x-coordinate
-PY= 1.0  # principal point y-coordinate
+FOCAL_LENGTH = 3  # focal length
+PX= 3  # principal point x-coordinate
+PY= 2  # principal point y-coordinate
 MX = 1.0  # number of pixels per unit distance in image coordinates in x direction
 MY = 1.0  # number of pixels per unit distance in image coordinates in y direction
+#THETA_X = 0  # roll angle
+#THETA_Y = 0.0  # pitch angle
+#THETA_Z = 0  # yaw angle
 THETA_X = np.pi / 2.0  # roll angle
-THETA_Y = 0.0  # pitch angle
+THETA_Y = np.pi  # pitch angle
 THETA_Z = np.pi  # yaw angle
 C = np.array([3, -5, 2])  # camera centre
 IMAGE_HEIGTH = 4
 IMAGE_WIDTH = 6
-RESOLUTION_HEIGTH = 800
-RESOLUTION_WIDTH = 1200
+RESOLUTION_HEIGTH = 400
+RESOLUTION_WIDTH = 600
 
 
 camera = Camera(
