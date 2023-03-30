@@ -16,8 +16,7 @@ class Surface:
     def __init__(
         self,
         name: str,
-        position: np.ndarray,
-        normal: np.ndarray,
+        position: np.ndarray,        
         reflectance: str,
         vertex1: np.ndarray,
         vertex2: np.ndarray,
@@ -29,11 +28,7 @@ class Surface:
 
         self._position = np.array(position, dtype=np.float32)
         if self._position.size != 3:
-            raise ValueError("Position must be an 1d-numpy array [x y z].")
-
-        self._normal = np.array(normal,  dtype=np.float32)
-        if not (isinstance(self._normal, np.ndarray)) or self._normal.size != 3:
-            raise ValueError("Normal must be an 1d-numpy array [x y z] dtype= float or int.")        
+            raise ValueError("Position must be an 1d-numpy array [x y z].")        
 
         self._reflectance = reflectance        
         if self._reflectance == 'plaster':
@@ -66,6 +61,12 @@ class Surface:
         if self._vertex4.size != 3:
             raise ValueError("Vertex4 must be an 1d-numpy array [x y z].")
 
+        # create a normal vector of the plane (surface)
+        self._normal = self._compute_normal(
+            self._vertex1, 
+            self._vertex2, 
+            self._vertex3
+            )
         #create an array with the four vertices
         self._group_vertices()
 
@@ -181,9 +182,17 @@ class Surface:
                 [self._vertex4]
                 ), 
                 axis=0    
-            )
+            )   
+    # print(self._vertices)
 
-        # print(self._vertices)
+    def _compute_normal(self, p1, p2, p3) -> np.ndarray:
+        
+        # Compute normal vector of the plane
+        n = np.cross(p2-p1, p3-p1)  # Compute normal vector of the plane
+
+        return n
+
+
         
         
 

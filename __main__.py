@@ -49,8 +49,8 @@ THETA_Z = np.pi  # yaw angle
 C = np.array([3, -5, 2])  # camera centre
 IMAGE_HEIGTH = 4
 IMAGE_WIDTH = 6
-RESOLUTION_HEIGTH = 400
-RESOLUTION_WIDTH = 600
+RESOLUTION_HEIGTH = 8
+RESOLUTION_WIDTH = 12
 
 
 camera = Camera(
@@ -64,7 +64,7 @@ camera = Camera(
     theta_y=THETA_Y,
     theta_z=THETA_Z,
     centre=C,
-    image_heigth=IMAGE_HEIGTH,
+    image_height=IMAGE_HEIGTH,
     image_width=IMAGE_WIDTH,
     resolution_h=RESOLUTION_HEIGTH,
     resolution_w=RESOLUTION_WIDTH,

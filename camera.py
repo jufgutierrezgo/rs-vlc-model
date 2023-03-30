@@ -35,7 +35,7 @@ class Camera:
         theta_y: float,
         theta_z: float,
         centre: np.ndarray,
-        image_heigth: float,
+        image_height: float,
         image_width: float,
         resolution_h: int,
         resolution_w: int,
@@ -82,9 +82,9 @@ class Camera:
         if not (isinstance(self._centre, np.ndarray)) or self._centre.size != 3:
             raise ValueError("Camera centre must be an 1d-numpy array [x y z] dtype= float or int.")        
 
-        # image heigth
-        self._image_heigth = image_heigth
-        if self._image_heigth <= 0:
+        # image height
+        self._image_height = image_height
+        if self._image_height <= 0:
             raise ValueError("The IMAGE LENGTH must be non-negative.")
 
         # image width
@@ -111,11 +111,10 @@ class Camera:
         self._projected_points = self._project_surface()
         print("\n Projected Point onto Image Plane:")
         print(self._projected_points)
-        self._pixels_inside =  self._points_inside()
-        print("\n Pixels inside of the polygon:")
-        print(self._pixels_inside)
+        self._pixels_inside =  self._points_inside()        
         self.plot_binary_image(self._pixels_inside, self._resolution_h, self._resolution_w)
-
+               
+        
     def _project_surface(self) -> np.ndarray:
         
         calibration_kwargs = {"f": self._focal_length, "px": self._px, "py": self._py, "mx": self._mx, "my": self._my}
@@ -160,24 +159,37 @@ class Camera:
 
         print("Bases of the Image frame")
         print(image_frame.dx, image_frame.dy, image_frame.dz)
+
+        # Create a 3D meshgrid onto the image plane
         grid3d_image = self._grid3d_image_plane(
-            image_frame.dx, 
-            image_frame.dy,
-            image_frame.origin 
+            dx=image_frame.dx/self._resolution_w, 
+            dy=image_frame.dy/self._resolution_h,
+            origin=image_frame.origin 
             )
-        print(image_frame.origin)
-        print(grid3d_image)
+        
+        # fig = plt.figure(figsize=(6, 6))
+        # ax = plt.axes(projection="3d")
+        # ax.scatter(
+        #     grid3d_image[:, :, 0], 
+        #     grid3d_image[:, :, 1], 
+        #     grid3d_image[:, :, 2], 
+        #     s=1)
+        # world_frame.draw3d() 
+        # ax.view_init(elev=45.0, azim=45.0)       
+        # plt.show()
         
         image_plane = ImagePlane(
             origin=image_frame.origin, 
             dx=image_frame.dx, 
             dy=image_frame.dy, 
-            heigth=self._image_heigth,
+            heigth =self._image_height,
             width=self._image_width,
             mx=self._mx,
             my=self._my,
         )
-        image = Image(heigth=self._image_heigth, width=self._image_width)
+        image = Image(
+            heigth=self._image_height, 
+            width=self._image_width)
         polygon_surface = Polygon(self._surface._vertices)
         # square1 = Polygon(np.array([
         #    [-1.0, 5.0, 4.0],
@@ -205,7 +217,7 @@ class Camera:
         plt.tight_layout()
         plt.show()
 
-        fig = plt.figure(figsize=(self._image_width, self._image_heigth))
+        fig = plt.figure(figsize=(self._image_width, self._image_height))
         ax = fig.gca()
         image.draw()
         polygon_surface.draw(**projection_kwargs)        
@@ -221,7 +233,7 @@ class Camera:
         
         # Compute the size of each cell
         pixel_size_x = self._image_width / self._resolution_w
-        pixel_size_y = self._image_heigth / self._resolution_h
+        pixel_size_y = self._image_height / self._resolution_h
 
         # Create a grid of cell centers
         pixel_centers_x = np.linspace(
@@ -231,7 +243,7 @@ class Camera:
             )
         pixel_centers_y = np.linspace(
             pixel_size_y/2, 
-            self._image_heigth-pixel_size_y/2, 
+            self._image_height-pixel_size_y/2, 
             self._resolution_h
             )
         
@@ -270,8 +282,8 @@ class Camera:
         plt.show()
         print("\n Points inside polygon:")
         print(points_inside)
-        # print("Pixels inside polygon:")
-        # print(pixels_inside)
+        print("Pixels inside polygon:")
+        print(pixels_inside)
 
         return pixels_inside
 
@@ -298,10 +310,10 @@ class Camera:
 
         return inside
     
-    def plot_binary_image(self, pixels, heigth, width):
+    def plot_binary_image(self, pixels, height, width):
         
     
-        binary_image = np.zeros((heigth, width))
+        binary_image = np.zeros((height, width))
         binary_image[pixels[0, :], pixels[1, :]] = 1
 
         # Plot binary matrix
@@ -318,10 +330,10 @@ class Camera:
         the image plane.
         """
 
-        grid3d_image_plane = np.zeros((self._image_width, self._image_heigth, 3))
+        grid3d_image_plane = np.zeros((self._resolution_w, self._resolution_h, 3))
         
-        for i in range(self._image_width):
-            for j in range(self._image_heigth):
+        for i in range(self._resolution_w):
+            for j in range(self._resolution_h):
                 grid3d_image_plane[i, j, :] = origin + i*dx + j*dy + dx/2 + dy/2
         
         return grid3d_image_plane
