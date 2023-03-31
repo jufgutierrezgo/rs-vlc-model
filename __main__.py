@@ -22,7 +22,7 @@ transmitter = Transmitter(
 transmitter.plot_spd_normalized()
 
 
-surface = Surface(
+surface1 = Surface(
     name="surfacePlaster",
     position=[0, 0, 1],
     reflectance='plaster',
@@ -31,8 +31,17 @@ surface = Surface(
     vertex3=[1.0, 2.0, 2.0],
     vertex4=[-1.0, 4.0, 1.0]
     )
-surface.plot_reflectance()
-surface._group_vertices()
+surface2 = Surface(
+    name="surfacePlaster",
+    position=[0, 0, 1],
+    reflectance='plaster',
+    vertex1=[0.0, 1.0, 0.0],
+    vertex2=[2.0, 1.0, 0.0],
+    vertex3=[2.0, 1.0, 2.0],
+    vertex4=[0.0, 1.0, 2.0]
+    )
+surface2.plot_reflectance()
+surface2._group_vertices()
 
 FOCAL_LENGTH = 3  # focal length
 PX= 3  # principal point x-coordinate
@@ -67,7 +76,7 @@ camera = Camera(
     image_width=IMAGE_WIDTH,
     resolution_h=RESOLUTION_HEIGTH,
     resolution_w=RESOLUTION_WIDTH,
-    surface=surface
+    surface=surface2
 )
 
 

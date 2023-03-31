@@ -119,6 +119,8 @@ class Camera:
             self._surface._normal,
             self._surface._vertex1
             )
+        print("Intersection points with surface")
+        print(self._intersection_points)
                
         
     def _project_surface(self) -> np.ndarray:
@@ -170,8 +172,8 @@ class Camera:
 
         # Create a 3D meshgrid onto the image plane
         self._grid3d_image = self._grid3d_image_plane(
-            dx=image_frame.dx/self._resolution_w, 
-            dy=image_frame.dy/self._resolution_h,
+            dx=image_frame.dx*self._image_width/self._resolution_w, 
+            dy=image_frame.dy*self._image_height/self._resolution_h,
             origin=image_frame.origin 
             )
         
@@ -220,6 +222,11 @@ class Camera:
         Z.draw3d()
         image_plane.draw3d()
         polygon_surface.draw3d(pi=image_plane.pi, C=self._centre)        
+        # ax.scatter(
+        #    self._grid3d_image[:, :, 0], 
+        #    self._grid3d_image[:, :, 1], 
+        #    self._grid3d_image[:, :, 2], 
+        #    s=1)
         ax.view_init(elev=45.0, azim=45.0)
         ax.set_title("CCD Camera Geometry")
         plt.tight_layout()
@@ -279,16 +286,16 @@ class Camera:
                         pixel_centers_yy[j, i],
                         self._projected_points):
                     points_inside.append([pixel_centers_xx[j,i], pixel_centers_yy[j,i]])
-                    pixels_inside.append(np.array((j, i)))
+                    pixels_inside.append(np.array((i, j)))
 
         points_inside = np.transpose(np.array(points_inside))
         pixels_inside = np.transpose(np.array(pixels_inside))
-        points3d_inside = self._grid3d_image[pixels_inside[1, :], pixels_inside[0, :], :]
+        points3d_inside = self._grid3d_image[pixels_inside[0, :], pixels_inside[1, :], :]
 
         #PLot area inside of the polygon
-        plt.scatter(pixel_centers_xx, pixel_centers_yy, s=1)
-        plt.scatter(points_inside[0, :], points_inside[1, :], s=1)
-        plt.show()
+        #plt.scatter(pixel_centers_xx, pixel_centers_yy, s=1)
+        #plt.scatter(points_inside[0, :], points_inside[1, :], s=1)
+        #plt.show()
         print("\n Points inside polygon:")
         print(points_inside)
         print("Pixels inside polygon:")
@@ -327,7 +334,7 @@ class Camera:
         
     
         binary_image = np.zeros((height, width))
-        binary_image[pixels[0, :], pixels[1, :]] = 1
+        binary_image[pixels[1, :], pixels[0, :]] = 1
 
         # Plot binary matrix
         plt.imshow(binary_image, cmap='gray', interpolation='nearest')
@@ -351,21 +358,28 @@ class Camera:
         
         return grid3d_image_plane
     
-    def _compute_intersection(self, points3d_inside, origin, n, p1):
+    def _compute_intersection(
+            self,
+            points3d_inside,
+            origin,
+            n,
+            p1) -> None:
         """
         Return the array with the 3D coordinates of the intersection 
         points between pixels vectors and the surface.
         """
-        n = np.reshape(n,(1,-1))
+        
         # Define the pixels vector (camera center and grid3d)
         d = points3d_inside - origin
 
         # Compute scalar parameter t
-        t = n * (p1 - origin) / (n * d)
+        t = np.reshape(
+            (p1 - origin).dot(n) / d.dot(n),
+            (-1,1)
+            )
 
         # Compute intersection point
         intersect = origin + t * d
-
-        print("Pixels vector:")
-        print(intersect)
+        
+        return intersect
         
