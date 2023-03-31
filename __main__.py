@@ -25,7 +25,6 @@ transmitter.plot_spd_normalized()
 surface = Surface(
     name="surfacePlaster",
     position=[0, 0, 1],
-    normal=[0, 0, 1],
     reflectance='plaster',
     vertex1=[-1.0, 5.0, 4.0],
     vertex2=[1.0, 3.0, 5.0],
