@@ -9,12 +9,18 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.insert(0, '/home/juanpc/python_phd/camera-models')
 
+#import transmitter module
+from transmitter import Transmitter as Transmitter
+
 #import surface module
 from surface import Surface as Surface
 
 # import camera module
 from camera_models import *  # our package
 
+import logging
+
+# logging.basicConfig(format=FORMAT)
 
 class Camera:
     """
@@ -39,6 +45,7 @@ class Camera:
         image_width: float,
         resolution_h: int,
         resolution_w: int,
+        transmitter: Transmitter,
         surface: Surface
             ) -> None:
 
@@ -106,9 +113,13 @@ class Camera:
         if not type(surface) is Surface:
             raise ValueError(
                 "Surface attribute must be an object type Surface.")
-        
 
-        self._projected_points = self._project_surface()
+        self._transmitter = transmitter
+        if not type(transmitter) is Transmitter:
+            raise ValueError(
+                "Transmiyyer attribute must be an object type Transmitter.")
+
+        self._projected_points, self._normal_camera = self._project_surface()
         print("\n Projected Points onto image plane:")
         print(self._projected_points)
         self._pixels_inside, self._points3d_inside = self._points_inside()        
@@ -121,6 +132,14 @@ class Camera:
             )
         print("Intersection points with surface")
         print(self._intersection_points)
+        self._compute_pixel_power(
+            pos_cam=self._centre,
+            n_cam=self._normal_camera,
+            pos_led=self._transmitter._position,
+            n_led=self._transmitter._normal,
+            surface_points=self._intersection_points,
+            n_surface=self._surface._normal
+        )
                
         
     def _project_surface(self) -> np.ndarray:
@@ -242,7 +261,7 @@ class Camera:
         plt.tight_layout()
         plt.show()
 
-        return np.array(polygon_surface.x_list)
+        return np.array(polygon_surface.x_list), camera_frame.dz
 
     def _points_inside(self):
         
@@ -382,4 +401,50 @@ class Camera:
         intersect = origin + t * d
         
         return intersect
+        
+    def _compute_pixel_power(
+            self, 
+            pos_cam: np.ndarray,
+            n_cam: np.ndarray, 
+            pos_led: np.ndarray, 
+            n_led: np.ndarray,
+            surface_points: np.ndarray,
+            n_surface: np.ndarray
+                ) -> np.ndarray:
+        
+        print("Computing the irradiance in each pixel ...")
+
+        dist_led = np.linalg.norm(surface_points - pos_led, axis=1)
+        dist_cam = np.linalg.norm(pos_cam - surface_points, axis=1)
+
+        unit_vled = np.divide(
+            surface_points - pos_led,
+            dist_led.reshape((-1, 1))
+            )
+        
+        unit_vcam = np.divide(
+            pos_cam - surface_points,
+            dist_cam.reshape((-1, 1))
+            )
+
+        # print("Diff:")
+        # print(surface_points - pos_led)
+        # print("Unit Vector LED")
+        # print(unit_vled)
+        # print("Distance")
+        # print(dist_led)
+
+        cos_phi_led = (unit_vled).dot(n_led)
+        cos_theta_surface = (-unit_vled).dot(n_surface)
+        cos_phi_surface = (unit_vcam).dot(n_surface)
+        cos_theta_pixel = (-unit_vcam).dot(n_cam)
+
+        # print("Cos-Phi LED:")
+        # print(cos_phi_led)
+        # print("Cos-Theta Surface:")
+        # print(cos_theta_surface)
+        # print("Cos-Phi Surface:")
+        # print(cos_phi_surface)
+        # print("Cos-Theta Pixel:")
+        # print(cos_theta_pixel)
         

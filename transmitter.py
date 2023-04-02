@@ -34,7 +34,7 @@ class Transmitter:
         if self._position.size != 3:
             raise ValueError("Position must be an 1d-numpy array [x y z].")
 
-        self._normal = np.array([normal],  dtype=np.float32)
+        self._normal = np.array(normal,  dtype=np.float32)
         if not (isinstance(self._normal, np.ndarray)) or self._normal.size != 3:
             raise ValueError("Normal must be an 1d-numpy array [x y z] dtype= float or int.")        
 

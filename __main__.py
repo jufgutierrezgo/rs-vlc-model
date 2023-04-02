@@ -11,7 +11,7 @@ import numpy as np
 
 transmitter = Transmitter(
         "Led1",
-        position=[2.5, 2.5, 3],
+        position=[3, 4, 10],
         normal=[0, 0, -1],
         mlambert=1,
         wavelengths=[620, 530, 475],
@@ -40,8 +40,17 @@ surface2 = Surface(
     vertex3=[2.0, 1.0, 2.0],
     vertex4=[0.0, 1.0, 2.0]
     )
-surface2.plot_reflectance()
-surface2._group_vertices()
+surface3 = Surface(
+    name="surfacePlaster",
+    position=[0, 0, 1],
+    reflectance='plaster',
+    vertex1=[1.0, 5.0, 0.0],
+    vertex2=[5.0, 5.0, 0.0],
+    vertex3=[5.0, 9.0, 4.0],
+    vertex4=[1.0, 9.0, 4.0]
+    )
+surface3.plot_reflectance()
+surface3._group_vertices()
 
 FOCAL_LENGTH = 3  # focal length
 PX= 3  # principal point x-coordinate
@@ -57,8 +66,8 @@ THETA_Z = np.pi  # yaw angle
 C = np.array([3, -5, 2])  # camera centre
 IMAGE_HEIGTH = 4
 IMAGE_WIDTH = 6
-RESOLUTION_HEIGTH = 8
-RESOLUTION_WIDTH = 12
+RESOLUTION_HEIGTH = 80
+RESOLUTION_WIDTH = 120
 
 
 camera = Camera(
@@ -76,7 +85,8 @@ camera = Camera(
     image_width=IMAGE_WIDTH,
     resolution_h=RESOLUTION_HEIGTH,
     resolution_w=RESOLUTION_WIDTH,
-    surface=surface2
+    surface=surface3,
+    transmitter=transmitter
 )
 
 

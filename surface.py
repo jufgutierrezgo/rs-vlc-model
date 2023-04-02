@@ -188,9 +188,10 @@ class Surface:
     def _compute_normal(self, p1, p2, p3) -> np.ndarray:
         
         # Compute normal vector of the plane
-        n = np.cross(p2-p1, p3-p1)  # Compute normal vector of the plane
-
-        return n
+        n = np.cross(p2-p1, p3-p1)   # Compute normal vector of the plane
+        n_unit = n / np.linalg.norm(n)
+        
+        return n_unit
 
 
         
