@@ -7,8 +7,6 @@ from camera import Camera as Camera
 
 import numpy as np
 
-
-
 transmitter = Transmitter(
         "Led1",
         position=[3, 4, 10],
@@ -20,6 +18,7 @@ transmitter = Transmitter(
         luminous_flux=5000
     )
 transmitter.plot_spd_normalized()
+transmitter.plot_led_pattern()
 
 
 surface1 = Surface(

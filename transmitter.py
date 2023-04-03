@@ -190,7 +190,7 @@ class Transmitter:
             
         )
 
-    def led_pattern(self) -> None:
+    def plot_led_pattern(self) -> None:
         """Function to create a 3d radiation pattern of the LED source.
 
         The LED for recurse channel model is assumed as lambertian radiator.

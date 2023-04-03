@@ -3,8 +3,9 @@ from constants import Constants as Kt
 # numeric numpy library
 import numpy as np
 
-# Library to plot the LED patter, SPD and responsivity
+# Library to plot 
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 import sys
 sys.path.insert(0, '/home/juanpc/python_phd/camera-models')
@@ -17,6 +18,8 @@ from surface import Surface as Surface
 
 # import camera module
 from camera_models import *  # our package
+
+from typing import Optional
 
 import logging
 
@@ -240,14 +243,15 @@ class Camera:
         image_frame.draw3d()
         Z.draw3d()
         image_plane.draw3d()
-        polygon_surface.draw3d(pi=image_plane.pi, C=self._centre)        
+        polygon_surface.draw3d(pi=image_plane.pi, C=self._centre)
+        self._draw3d_led(origin_led=self._transmitter._position, ax=ax)
         # ax.scatter(
         #    self._grid3d_image[:, :, 0], 
         #    self._grid3d_image[:, :, 1], 
         #    self._grid3d_image[:, :, 2], 
         #    s=1)
         ax.view_init(elev=45.0, azim=45.0)
-        ax.set_title("CCD Camera Geometry")
+        ax.set_title("Camera Geometry")
         plt.tight_layout()
         plt.show()
 
@@ -264,6 +268,8 @@ class Camera:
         return np.array(polygon_surface.x_list), camera_frame.dz
 
     def _points_inside(self):
+
+        print("Computing the point's coordinates inside of the projected polygon ...")
         
         # Compute the size of each cell
         pixel_size_x = self._image_width / self._resolution_w
@@ -387,7 +393,7 @@ class Camera:
         Return the array with the 3D coordinates of the intersection 
         points between pixels vectors and the surface.
         """
-        
+        print("Computing the intersection points with the surface ... ")
         # Define the pixels vector (camera center and grid3d)
         d = points3d_inside - origin
 
@@ -448,3 +454,23 @@ class Camera:
         # print("Cos-Theta Pixel:")
         # print(cos_theta_pixel)
         
+    def _draw3d_led(
+            self, 
+            origin_led = np.array([0, 0, 0]),
+            ax: Optional[Axes3D] = None
+            ) -> Axes3D:
+        
+        if ax is None:
+            ax = plt.gca(projection="3d")
+
+        # Define the 8 vertices of the rectangular parallelepiped
+        vertices = np.array([(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0), (0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 1)]) + origin_led
+
+        # Define the 12 edges of the rectangular parallelepiped
+        edges = np.array([(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4), (0, 4), (1, 5), (2, 6), (3, 7)])
+
+        # Plot the rectangular parallelepiped
+        for edge in edges:
+            ax.plot3D(vertices[edge, 0], vertices[edge, 1], vertices[edge, 2], 'blue')        
+        
+        return ax
