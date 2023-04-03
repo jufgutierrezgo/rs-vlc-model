@@ -457,14 +457,25 @@ class Camera:
     def _draw3d_led(
             self, 
             origin_led = np.array([0, 0, 0]),
-            ax: Optional[Axes3D] = None
-            ) -> Axes3D:
+            ax: Optional[Axes3D] = None,
+            name: str = "LED"
+        ) -> Axes3D:
         
         if ax is None:
             ax = plt.gca(projection="3d")
 
         # Define the 8 vertices of the rectangular parallelepiped
-        vertices = np.array([(0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0), (0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 1)]) + origin_led
+        vertices = np.array([
+            (-0.5, -0.5, 0), 
+            (-0.5, 0.5, 0), 
+            (0.5, 0.5, 0), 
+            (0.5, -0.5, 0),     
+            (-0.5, -0.5, 0.1),
+            (-0.5, 0.5, 0.1),
+            (0.5, 0.5, 0.1),
+            (0.5, -0.5, 0.1)      
+            ]) + origin_led
+
 
         # Define the 12 edges of the rectangular parallelepiped
         edges = np.array([(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4), (0, 4), (1, 5), (2, 6), (3, 7)])
@@ -473,4 +484,6 @@ class Camera:
         for edge in edges:
             ax.plot3D(vertices[edge, 0], vertices[edge, 1], vertices[edge, 2], 'blue')        
         
+        ax.text(*(origin_led+[0, 0, 1]), name)
+
         return ax

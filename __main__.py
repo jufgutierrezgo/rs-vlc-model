@@ -43,10 +43,10 @@ surface3 = Surface(
     name="surfacePlaster",
     position=[0, 0, 1],
     reflectance='plaster',
-    vertex1=[1.0, 5.0, 0.0],
-    vertex2=[5.0, 5.0, 0.0],
-    vertex3=[5.0, 9.0, 4.0],
-    vertex4=[1.0, 9.0, 4.0]
+    vertex1=[1.0, 2.0, 0.0],
+    vertex2=[5.0, 2.0, 0.0],
+    vertex3=[5.0, 6.0, 4.0],
+    vertex4=[1.0, 6.0, 4.0]
     )
 surface3.plot_reflectance()
 surface3._group_vertices()
