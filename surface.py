@@ -125,19 +125,7 @@ class Surface:
                 )
         else:
             raise ValueError("Reflectance name is not valid.")
-    
-    @property
-    def size(self) -> np.ndarray:
-        """The size property"""
-        return self._size
-
-    @size.setter
-    def size(self, size):
-        self._size = np.array(size)
-        if self._size.size != 2:
-            raise ValueError(
-                "Size of the rectangular surface must be an 1d-numpy array [x y]")
-
+        
     def __str__(self) -> str:
         return (
             f'\n List of parameters for LED transmitter: \n'
@@ -145,7 +133,6 @@ class Surface:
             f'Position [x y z]: {self._position} \n'
             f'Normal Vector [x y z]: {self._normal} \n'
             f'Reflectance Material: {self._reflectance} \n'
-            f'Size [x y]: {self._size} \n'   
             f'Area: {self._area} \n'                   
             )
     

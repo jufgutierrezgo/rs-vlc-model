@@ -45,9 +45,7 @@ class Camera:
         theta_z: float,
         centre: np.ndarray,
         image_height: float,
-        image_width: float,
-        resolution_h: int,
-        resolution_w: int,
+        image_width: float,        
         transmitter: Transmitter,
         surface: Surface
             ) -> None:
@@ -103,14 +101,10 @@ class Camera:
             raise ValueError("The IMAGE WIDTH must be non-negative.")
         
         # resolution height
-        self._resolution_h = resolution_h
-        if self._resolution_h <= 0:
-            raise ValueError("The RESOLUTION H must be an positive integer.")
-
+        self._resolution_h = int(self._image_height * self._my)
+        
         # resolution width
-        self._resolution_w = resolution_w
-        if self._resolution_w <= 0:
-            raise ValueError("The RESOLUTION H must be an positive integer.")
+        self._resolution_w = int(self._image_width * self._mx)        
 
         self._surface = surface             
         if not type(surface) is Surface:
@@ -121,6 +115,8 @@ class Camera:
         if not type(transmitter) is Transmitter:
             raise ValueError(
                 "Transmiyyer attribute must be an object type Transmitter.")
+        
+        self._pixel_area = (1/self._mx) * (1/self._my)
 
         self._projected_points, self._normal_camera = self._project_surface()
         print("\n Projected Points onto image plane:")
@@ -135,15 +131,23 @@ class Camera:
             )
         print("Intersection points with surface")
         print(self._intersection_points)
-        self._compute_pixel_power(
+        self._pixel_power = self._compute_pixel_power(
             pos_cam=self._centre,
             n_cam=self._normal_camera,
             pos_led=self._transmitter._position,
             n_led=self._transmitter._normal,
             surface_points=self._intersection_points,
-            n_surface=self._surface._normal
+            n_surface=self._surface._normal,
+            area_surf=self._surface._area,
+            m_lambert=self._transmitter._mlambert,
+            pixel_area=self._pixel_area
         )
-               
+        self.plot_power_image(
+            pixels_power=self._pixel_power,
+            pixels_inside=self._pixels_inside,
+            height=self._resolution_h,
+            width=self._resolution_w
+            )
         
     def _project_surface(self) -> np.ndarray:
 
@@ -245,11 +249,11 @@ class Camera:
         image_plane.draw3d()
         polygon_surface.draw3d(pi=image_plane.pi, C=self._centre)
         self._draw3d_led(origin_led=self._transmitter._position, ax=ax)
-        # ax.scatter(
-        #    self._grid3d_image[:, :, 0], 
-        #    self._grid3d_image[:, :, 1], 
-        #    self._grid3d_image[:, :, 2], 
-        #    s=1)
+        ax.scatter(
+            self._grid3d_image[:, :, 0], 
+            self._grid3d_image[:, :, 1], 
+            self._grid3d_image[:, :, 2], 
+            s=1)
         ax.view_init(elev=45.0, azim=45.0)
         ax.set_title("Camera Geometry")
         plt.tight_layout()
@@ -379,7 +383,7 @@ class Camera:
         
         for i in range(self._resolution_w):
             for j in range(self._resolution_h):
-                grid3d_image_plane[i, j, :] = origin + i*dx + j*dy + dx/2 + dy/2
+                grid3d_image_plane[i, j, :] = origin + i*dx/self._mx + j*dy/self._my + dx/(2*self._mx) + dy/(2*self._my)
         
         return grid3d_image_plane
     
@@ -393,6 +397,7 @@ class Camera:
         Return the array with the 3D coordinates of the intersection 
         points between pixels vectors and the surface.
         """
+
         print("Computing the intersection points with the surface ... ")
         # Define the pixels vector (camera center and grid3d)
         d = points3d_inside - origin
@@ -415,7 +420,10 @@ class Camera:
             pos_led: np.ndarray, 
             n_led: np.ndarray,
             surface_points: np.ndarray,
-            n_surface: np.ndarray
+            n_surface: np.ndarray,
+            area_surf: float,
+            m_lambert: float,
+            pixel_area: float
                 ) -> np.ndarray:
         
         print("Computing the irradiance in each pixel ...")
@@ -424,7 +432,7 @@ class Camera:
         dist_cam = np.linalg.norm(pos_cam - surface_points, axis=1)
 
         no_points = len(dist_led)
-        
+        delta_area = area_surf / no_points
 
         unit_vled = np.divide(
             surface_points - pos_led,
@@ -457,6 +465,22 @@ class Camera:
         print("Cos-Theta Pixel:")
         print(cos_theta_pixel)
 
+        power_pixel = (
+            (m_lambert+1)/(2*np.pi*dist_led**2) *
+            (cos_phi_led**m_lambert) *
+            cos_theta_surface *
+            delta_area *
+            cos_phi_surface *
+            cos_theta_pixel *
+            1/(2*np.pi*dist_cam**2) *
+            pixel_area
+            )
+        
+        print("Power in each pixel")
+        print(power_pixel)
+
+        return power_pixel
+
     def _draw3d_led(
             self, 
             origin_led = np.array([0, 0, 0]),
@@ -488,4 +512,19 @@ class Camera:
         ax.text(*(origin_led+[0, 1, 0]), name)
 
         return ax
+
+    def plot_power_image(self, pixels_power, pixels_inside, height, width):
+
+        power_image = np.zeros((height, width))
+
+        for i in range(len(pixels_power)):
+            power_image[pixels_inside[1, i], pixels_inside[0, i]] = pixels_power[i]
+
+        normalized_power_image = power_image / np.max(power_image)       
+        
+        # Plot power image
+        plt.imshow(normalized_power_image, cmap='gray', interpolation='nearest')
+        plt.title("Image of the average power received")        
+        plt.show()
+        
 
