@@ -327,7 +327,7 @@ class Camera:
         print(pixels_inside)
         print("Points 3D inside polygon:")
         print(points3d_inside)
-        print("Points 3D onto image plane:")
+        print("Grid of points 3D onto image plane:")
         print(self._grid3d_image)
 
         return pixels_inside, points3d_inside
@@ -423,6 +423,9 @@ class Camera:
         dist_led = np.linalg.norm(surface_points - pos_led, axis=1)
         dist_cam = np.linalg.norm(pos_cam - surface_points, axis=1)
 
+        no_points = len(dist_led)
+        
+
         unit_vled = np.divide(
             surface_points - pos_led,
             dist_led.reshape((-1, 1))
@@ -445,21 +448,20 @@ class Camera:
         cos_phi_surface = (unit_vcam).dot(n_surface)
         cos_theta_pixel = (-unit_vcam).dot(n_cam)
 
-        # print("Cos-Phi LED:")
-        # print(cos_phi_led)
-        # print("Cos-Theta Surface:")
-        # print(cos_theta_surface)
-        # print("Cos-Phi Surface:")
-        # print(cos_phi_surface)
-        # print("Cos-Theta Pixel:")
-        # print(cos_theta_pixel)
-        
+        print("Cos-Phi LED:")
+        print(cos_phi_led)
+        print("Cos-Theta Surface:")
+        print(cos_theta_surface)
+        print("Cos-Phi Surface:")
+        print(cos_phi_surface)
+        print("Cos-Theta Pixel:")
+        print(cos_theta_pixel)
+
     def _draw3d_led(
             self, 
             origin_led = np.array([0, 0, 0]),
             ax: Optional[Axes3D] = None,
-            name: str = "LED"
-        ) -> Axes3D:
+            name: str = "LED") -> Axes3D:
         
         if ax is None:
             ax = plt.gca(projection="3d")
@@ -476,7 +478,6 @@ class Camera:
             (0.5, -0.5, 0.1)      
             ]) + origin_led
 
-
         # Define the 12 edges of the rectangular parallelepiped
         edges = np.array([(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4), (0, 4), (1, 5), (2, 6), (3, 7)])
 
@@ -484,6 +485,7 @@ class Camera:
         for edge in edges:
             ax.plot3D(vertices[edge, 0], vertices[edge, 1], vertices[edge, 2], 'blue')        
         
-        ax.text(*(origin_led+[0, 0, 1]), name)
+        ax.text(*(origin_led+[0, 1, 0]), name)
 
         return ax
+

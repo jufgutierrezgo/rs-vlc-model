@@ -70,6 +70,14 @@ class Surface:
         #create an array with the four vertices
         self._group_vertices()
 
+        # compute the area of the surface from vertices
+        self._area = self._compute_area(
+            self._vertex1,
+            self._vertex2,
+            self._vertex3,
+            self._vertex4
+            )
+
     @property
     def name(self) -> str:
         return self._name
@@ -137,7 +145,8 @@ class Surface:
             f'Position [x y z]: {self._position} \n'
             f'Normal Vector [x y z]: {self._normal} \n'
             f'Reflectance Material: {self._reflectance} \n'
-            f'Size [x y]: {self._size} \n'                     
+            f'Size [x y]: {self._size} \n'   
+            f'Area: {self._area} \n'                   
             )
     
     def plot_reflectance(self) -> None:
@@ -190,9 +199,26 @@ class Surface:
         # Compute normal vector of the plane
         n = np.cross(p2-p1, p3-p1)   # Compute normal vector of the plane
         n_unit = n / np.linalg.norm(n)
-        
+
         return n_unit
 
+    def _compute_area(self, v1, v2, v3, v4) -> float:
+
+        # create a matrix of vertices
+        vertices = np.array([v1, v2, v3, v4])
+
+        # compute the edges
+        edges = np.diff(vertices, axis=0)
+
+        # compute the length of each edge
+        lengths = np.sqrt(np.sum(np.square(edges), axis=1))
+
+        # compute the area of the rectangle
+        area = lengths[0] * lengths[1]
+
+        # print("Area of rectangle:", area)
+        
+        return area
 
         
         
