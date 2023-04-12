@@ -51,14 +51,11 @@ surface3 = Surface(
 surface3.plot_reflectance()
 surface3._group_vertices()
 
-FOCAL_LENGTH = 3/100  # focal length
-PX= 3/100  # principal point x-coordinate
-PY= 2/100  # principal point y-coordinate
-MX = 100.0  # number of pixels per unit distance in image coordinates in x direction
-MY = 100.0  # number of pixels per unit distance in image coordinates in y direction
-#THETA_X = 0  # roll angle
-#THETA_Y = 0.0  # pitch angle
-#THETA_Z = 0  # yaw angle
+MX = 200.0  # number of pixels per unit distance in image coordinates in x direction
+MY = 200.0  # number of pixels per unit distance in image coordinates in y direction
+FOCAL_LENGTH = 3/MX  # focal length
+PX= 3/MX  # principal point x-coordinate
+PY= 2/MY  # principal point y-coordinate
 THETA_X = np.pi / 2.0  # roll angle
 THETA_Y = np.pi  # pitch angle
 THETA_Z = np.pi  # yaw angle

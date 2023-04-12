@@ -119,8 +119,8 @@ class Camera:
         self._pixel_area = (1/self._mx) * (1/self._my)
 
         self._projected_points, self._normal_camera = self._project_surface()
-        print("\n Projected Points onto image plane:")
-        print(self._projected_points)
+        # print("\n Projected Points onto image plane:")
+        # print(self._projected_points)
         self._pixels_inside, self._points3d_inside = self._points_inside()        
         self.plot_binary_image(self._pixels_inside, self._resolution_h, self._resolution_w)
         self._intersection_points = self._compute_intersection(
@@ -129,8 +129,8 @@ class Camera:
             self._surface._normal,
             self._surface._vertex1
             )
-        print("Intersection points with surface")
-        print(self._intersection_points)
+        # print("Intersection points with surface")
+        # print(self._intersection_points)
         self._pixel_power = self._compute_pixel_power(
             pos_cam=self._centre,
             n_cam=self._normal_camera,
@@ -249,11 +249,11 @@ class Camera:
         image_plane.draw3d()
         polygon_surface.draw3d(pi=image_plane.pi, C=self._centre)
         self._draw3d_led(origin_led=self._transmitter._position, ax=ax)
-        ax.scatter(
-            self._grid3d_image[:, :, 0], 
-            self._grid3d_image[:, :, 1], 
-            self._grid3d_image[:, :, 2], 
-            s=1)
+        # ax.scatter(
+        #    self._grid3d_image[:, :, 0], 
+        #    self._grid3d_image[:, :, 1], 
+        #    self._grid3d_image[:, :, 2], 
+        #    s=1)
         ax.view_init(elev=45.0, azim=45.0)
         ax.set_title("Camera Geometry")
         plt.tight_layout()
@@ -322,17 +322,17 @@ class Camera:
         points3d_inside = self._grid3d_image[pixels_inside[0, :], pixels_inside[1, :], :]
 
         #PLot area inside of the polygon
-        #plt.scatter(pixel_centers_xx, pixel_centers_yy, s=1)
-        #plt.scatter(points_inside[0, :], points_inside[1, :], s=1)
-        #plt.show()
-        print("\n Points inside polygon:")
-        print(points_inside)
-        print("Pixels inside polygon:")
-        print(pixels_inside)
-        print("Points 3D inside polygon:")
-        print(points3d_inside)
-        print("Grid of points 3D onto image plane:")
-        print(self._grid3d_image)
+        # plt.scatter(pixel_centers_xx, pixel_centers_yy, s=1)
+        # plt.scatter(points_inside[0, :], points_inside[1, :], s=1)
+        # plt.show()
+        # print("\n 2D-points inside polygon on image space:")
+        # print(points_inside)
+        # print("Pixels inside polygon:")
+        # print(pixels_inside)
+        # print("3D-points inside polygon on image plane:")
+        # print(points3d_inside)
+        # print("Grid of points 3D onto image plane:")
+        # print(self._grid3d_image)
 
         return pixels_inside, points3d_inside
 
@@ -456,14 +456,14 @@ class Camera:
         cos_phi_surface = (unit_vcam).dot(n_surface)
         cos_theta_pixel = (-unit_vcam).dot(n_cam)
 
-        print("Cos-Phi LED:")
-        print(cos_phi_led)
-        print("Cos-Theta Surface:")
-        print(cos_theta_surface)
-        print("Cos-Phi Surface:")
-        print(cos_phi_surface)
-        print("Cos-Theta Pixel:")
-        print(cos_theta_pixel)
+        # print("Cos-Phi LED:")
+        # print(cos_phi_led)
+        # print("Cos-Theta Surface:")
+        # print(cos_theta_surface)
+        # print("Cos-Phi Surface:")
+        # print(cos_phi_surface)
+        # print("Cos-Theta Pixel:")
+        # print(cos_theta_pixel)
 
         power_pixel = (
             (m_lambert+1)/(2*np.pi*dist_led**2) *
@@ -476,8 +476,8 @@ class Camera:
             pixel_area
             )
         
-        print("Power in each pixel")
-        print(power_pixel)
+        # print("Power in each pixel")
+        # print(power_pixel)
 
         return power_pixel
 
@@ -524,7 +524,7 @@ class Camera:
         
         # Plot power image
         plt.imshow(normalized_power_image, cmap='gray', interpolation='nearest')
-        plt.title("Image of the average power received")        
+        plt.title("Image of the average received power")        
         plt.show()
         
 
