@@ -1,15 +1,15 @@
-#Import module Transmitter
+# Import Transmitter module
 from transmitter import Transmitter as Transmitter
-
+# Import Surface module 
 from surface import Surface as Surface
-
+# Import Camera module
 from camera import Camera as Camera
-
+# Import NUmpy library
 import numpy as np
 
 transmitter = Transmitter(
         "Led1",
-        position=[3, 4, 10],
+        position=[3, 4, 5],
         normal=[0, 0, -1],
         mlambert=1,
         wavelengths=[620, 530, 475],
@@ -51,8 +51,8 @@ surface3 = Surface(
 surface3.plot_reflectance()
 surface3._group_vertices()
 
-MX = 200.0  # number of pixels per unit distance in image coordinates in x direction
-MY = 200.0  # number of pixels per unit distance in image coordinates in y direction
+MX = 2e2  # number of pixels per unit distance in image coordinates in x direction
+MY = 2e2  # number of pixels per unit distance in image coordinates in y direction
 FOCAL_LENGTH = 3/MX  # focal length
 PX= 3/MX  # principal point x-coordinate
 PY= 2/MY  # principal point y-coordinate

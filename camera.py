@@ -142,12 +142,13 @@ class Camera:
             m_lambert=self._transmitter._mlambert,
             pixel_area=self._pixel_area
         )
-        self.plot_power_image(
+        self._power_image = self._compute_power_image(
             pixels_power=self._pixel_power,
             pixels_inside=self._pixels_inside,
             height=self._resolution_h,
             width=self._resolution_w
             )
+        self.plot_power_image()
         
     def _project_surface(self) -> np.ndarray:
 
@@ -359,8 +360,7 @@ class Camera:
 
         return inside
     
-    def plot_binary_image(self, pixels, height, width):
-        
+    def plot_binary_image(self, pixels, height, width):        
     
         binary_image = np.zeros((height, width))
         binary_image[pixels[1, :], pixels[0, :]] = 1
@@ -513,18 +513,21 @@ class Camera:
 
         return ax
 
-    def plot_power_image(self, pixels_power, pixels_inside, height, width):
+    def _compute_power_image(self) -> np.ndarray:
 
-        power_image = np.zeros((height, width))
+        power_image = np.zeros((self._resolution_h, self._resolution_w))
 
-        for i in range(len(pixels_power)):
-            power_image[pixels_inside[1, i], pixels_inside[0, i]] = pixels_power[i]
+        for i in range(len(self._pixel_power)):
+            power_image[self._pixels_inside[1, i], self._pixels_inside[0, i]] = self._pixel_power[i]
 
-        normalized_power_image = power_image / np.max(power_image)       
+        return power_image
+        
+     
+     def plot_power_image(self):
+
+        normalized_power_image = self._power_image / np.max(self._power_image)       
         
         # Plot power image
         plt.imshow(normalized_power_image, cmap='gray', interpolation='nearest')
-        plt.title("Image of the average received power")        
+        plt.title("Image of the normalized received power")        
         plt.show()
-        
-
