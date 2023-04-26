@@ -7,6 +7,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+# Scipy import
+import scipy.signal as signal
+from scipy.stats import norm
+# Skiimage import
+from skimage import data
+
+
 import sys
 sys.path.insert(0, '/home/juanpc/python_phd/camera-models')
 
@@ -149,6 +156,12 @@ class Camera:
             width=self._resolution_w
             )
         self.plot_power_image()
+        self._blurred_image = self._add_blur(
+            self._power_image,
+            size=11,
+            center=5.5,
+            sigma=3)
+        self.plot_blurred_image()
         
     def _project_surface(self) -> np.ndarray:
 
@@ -513,21 +526,45 @@ class Camera:
 
         return ax
 
-    def _compute_power_image(self) -> np.ndarray:
+    def _compute_power_image(self, pixels_power, pixels_inside, height, width) -> np.ndarray:
+        """ This function computes the image with the received power by each pixel. """
 
-        power_image = np.zeros((self._resolution_h, self._resolution_w))
+        power_image = np.zeros((height, width))
 
-        for i in range(len(self._pixel_power)):
-            power_image[self._pixels_inside[1, i], self._pixels_inside[0, i]] = self._pixel_power[i]
+        for i in range(len(pixels_power)):
+            power_image[pixels_inside[1, i], pixels_inside[0, i]] = pixels_power[i]
 
         return power_image
-        
      
-     def plot_power_image(self):
+    def plot_power_image(self):
+        """ Plot the image of the received power. """
 
         normalized_power_image = self._power_image / np.max(self._power_image)       
         
         # Plot power image
         plt.imshow(normalized_power_image, cmap='gray', interpolation='nearest')
         plt.title("Image of the normalized received power")        
+        plt.show()
+
+    def _add_blur(self, power_image, size=7, center=3.5, sigma=1.5) -> np.ndarray:    
+        """ This function applies the point spread function of the power image. """
+
+        # Generate a 7x7 PSF with a normal distribution
+        x, y = np.meshgrid(np.arange(size), np.arange(size))        
+        psf = norm.pdf(np.sqrt((x-center)**2 + (y-center)**2), 0, sigma)
+        psf /= psf.sum()  # normalize the PSF to sum to 1
+
+        # Convolve the image with the PSF
+        blurred = signal.convolve2d(power_image, psf, mode='same')
+
+        return blurred
+    
+    def plot_blurred_image(self) -> None:
+        """ Plot the original image and the blurred image """
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
+        ax1.imshow(self._power_image, cmap='gray')
+        ax1.set_title('Original')
+        ax2.imshow(self._blurred_image, cmap='gray')
+        ax2.set_title('Blurred with PSF')
         plt.show()
