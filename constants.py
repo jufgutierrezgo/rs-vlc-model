@@ -16,6 +16,8 @@ class Constants:
         ]
     # directory root of the project
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+     # directory to save channel impulse response raw data
+    SENSOR_PATH = ROOT_DIR + "/image_sensors/"
     # directory to save channel impulse response raw data
     REFLECTANCE_PATH = ROOT_DIR + "/surface_reflectances/"
     # Numbers of LED (Transmission channels)

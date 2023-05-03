@@ -9,17 +9,18 @@ import numpy as np
 
 transmitter = Transmitter(
         "Led1",
-        position=[3, 4, 5],
+        position=[3, 4, 10],
         normal=[0, 0, -1],
         mlambert=1,
-        wavelengths=[620, 530, 475],
-        fwhm=[20, 45, 20],
+        wavelengths=[624, 516, 468],
+        fwhm=[14.55, 29.05, 21.62],
         modulation='ieee16',
         luminous_flux=5000
     )
 transmitter.plot_spd_normalized()
+transmitter.plot_spd_at_1lm()
 transmitter.plot_led_pattern()
-
+print(transmitter)
 
 surface1 = Surface(
     name="surfacePlaster",
@@ -77,7 +78,8 @@ camera = Camera(
     image_height=IMAGE_HEIGTH,
     image_width=IMAGE_WIDTH,    
     surface=surface3,
-    transmitter=transmitter
+    transmitter=transmitter,
+    sensor='SonyIMX219PQH5-C'
 )
 
 

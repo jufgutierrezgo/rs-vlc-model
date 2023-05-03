@@ -191,15 +191,10 @@ class Transmitter:
         )
 
     def plot_led_pattern(self) -> None:
-        """Function to create a 3d radiation pattern of the LED source.
+        """ Function to create a 3d radiation pattern of the LED source.
 
         The LED for recurse channel model is assumed as lambertian radiator.
         The number of lambert defines the directivity of the light source.
-
-        Parameters:
-            m: Lambert number
-
-        Returns: None.
 
         """
 
@@ -216,11 +211,12 @@ class Transmitter:
             linewidth=0, antialiased=False, alpha=0.5)
 
         plt.show()
+        
 
     def _create_led_spd(self):
         """
-        This function creates the normilized spectrum of the LEDs 
-        from central wavelengths and FWHM.
+        This function creates the  spectrum of the LEDs 
+        from central wavelengths and FWHM. 
         """
         # Array for wavelenght points from 380nm to (782-2)nm with 1nm steps
         self._array_wavelenghts = np.arange(380, 781, 1)
@@ -236,12 +232,12 @@ class Transmitter:
             
             self._spd_normalized[:, i] = self._led_spd[:, i]/np.max(self._led_spd[:, i])
         
-    def plot_spd_at_1w(self):
+    def plot_spd_at_1lm(self):
         # plot red spd data
         for i in range(Kt.NO_LEDS):
             plt.plot(self._array_wavelenghts, self._avg_power[i]*self._led_spd[:, i])
         
-        plt.title("Spectral Power Distribution at 1W/channel")
+        plt.title("Spectral Power Distribution at 1 Lumen/channel")
         plt.xlabel("Wavelength [nm]")
         plt.ylabel("Power [W]")
         plt.grid()
@@ -252,7 +248,8 @@ class Transmitter:
         for i in range(Kt.NO_LEDS):
             plt.plot(
                 self._array_wavelenghts,
-                self._spd_normalized[:, i]
+                # self._spd_normalized[:, i]
+                self._led_spd[:, i]
                 )
         
         plt.title("Normalized Spectral Power Distribution")

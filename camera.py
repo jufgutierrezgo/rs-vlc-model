@@ -54,7 +54,8 @@ class Camera:
         image_height: float,
         image_width: float,        
         transmitter: Transmitter,
-        surface: Surface
+        surface: Surface,
+        sensor: str
             ) -> None:
 
         self._name = name
@@ -123,6 +124,11 @@ class Camera:
             raise ValueError(
                 "Transmiyyer attribute must be an object type Transmitter.")
         
+        if sensor == 'SonyIMX219PQH5-C':
+            # read text file into NumPy array
+            self._channel_response = np.loadtxt(
+                Kt.SENSOR_PATH+"SonyIMX219PQH5-C.txt")  
+
         self._pixel_area = (1/self._mx) * (1/self._my)
 
         self._projected_points, self._normal_camera = self._project_surface()
@@ -158,10 +164,18 @@ class Camera:
         self.plot_power_image()
         self._blurred_image = self._add_blur(
             self._power_image,
-            size=11,
+            size=7,
             center=5.5,
             sigma=3)
+        
         self.plot_blurred_image()
+        self.plot_channel_respose()
+
+        #self._compute_spectral_factor(
+        #    spd_led=self._transmitter._led_spd,
+        #    reflectance=self._surface._reflectance,
+        #    channel_response=self._channel_response
+        #)
         
     def _project_surface(self) -> np.ndarray:
 
@@ -255,7 +269,7 @@ class Camera:
         # ]))
 
         fig = plt.figure(figsize=(6, 6))
-        ax = plt.axes(projection="3d")
+        ax = plt.axes(projection="3d")        
         world_frame.draw3d()
         camera_frame.draw3d()
         image_frame.draw3d()
@@ -549,6 +563,7 @@ class Camera:
     def _add_blur(self, power_image, size=7, center=3.5, sigma=1.5) -> np.ndarray:    
         """ This function applies the point spread function of the power image. """
 
+        print("Adding blur effect ...")
         # Generate a 7x7 PSF with a normal distribution
         x, y = np.meshgrid(np.arange(size), np.arange(size))        
         psf = norm.pdf(np.sqrt((x-center)**2 + (y-center)**2), 0, sigma)
@@ -561,10 +576,44 @@ class Camera:
     
     def plot_blurred_image(self) -> None:
         """ Plot the original image and the blurred image """
-
+       
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
         ax1.imshow(self._power_image, cmap='gray')
-        ax1.set_title('Original')
+        ax1.set_title('Non-blurred image')
         ax2.imshow(self._blurred_image, cmap='gray')
-        ax2.set_title('Blurred with PSF')
+        ax2.set_title('Blurred image with PSF')        
         plt.show()
+
+    def plot_channel_respose(self) -> None:
+        plt.plot(
+            self._channel_response[:, 0],
+            self._channel_response[:, 1],
+            color='r',
+            linestyle='dashed'
+        )
+        plt.plot(
+            self._channel_response[:, 0],
+            self._channel_response[:, 2],
+            color='g',
+            linestyle='dashed'
+        )
+        plt.plot(
+            self._channel_response[:, 0],
+            self._channel_response[:, 3],
+            color='b',
+            linestyle='dashed'
+        )
+        plt.title("Spectral Responsiity of Color Channels")
+        plt.xlabel("Wavelength [nm]")
+        plt.ylabel("Response")
+        plt.grid()
+        plt.show()
+
+    def _compute_spectral_factor(self, spd_led, reflectance, channel_response, responsivity):
+        """
+        This function computes an spectral factor from the SPD of LED, 
+        the spectral reflectance of the surface, the spectral response
+        of the color channel, and the responsivity of the substrate.
+        """
+
+
