@@ -52,8 +52,8 @@ surface3 = Surface(
 surface3.plot_reflectance()
 surface3._group_vertices()
 
-MX = 2e2  # number of pixels per unit distance in image coordinates in x direction
-MY = 2e2  # number of pixels per unit distance in image coordinates in y direction
+MX = 1e2  # number of pixels per unit distance in image coordinates in x direction
+MY = 1e2  # number of pixels per unit distance in image coordinates in y direction
 FOCAL_LENGTH = 3/MX  # focal length
 PX= 3/MX  # principal point x-coordinate
 PY= 2/MY  # principal point y-coordinate
@@ -79,7 +79,7 @@ camera = Camera(
     image_width=IMAGE_WIDTH,    
     surface=surface3,
     transmitter=transmitter,
-    sensor='SonyIMX219PQH5-C'
+    sensor='SonyStarvisBSI'
 )
 
 

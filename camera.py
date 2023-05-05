@@ -124,10 +124,10 @@ class Camera:
             raise ValueError(
                 "Transmiyyer attribute must be an object type Transmitter.")
         
-        if sensor == 'SonyIMX219PQH5-C':
+        if sensor == 'SonyStarvisBSI':
             # read text file into NumPy array
-            self._channel_response = np.loadtxt(
-                Kt.SENSOR_PATH+"SonyIMX219PQH5-C.txt")  
+            self._quantum_efficiency = np.loadtxt(
+                Kt.SENSOR_PATH+"SonyStarvisBSI.txt")  
 
         self._pixel_area = (1/self._mx) * (1/self._my)
 
@@ -169,7 +169,12 @@ class Camera:
             sigma=3)
         
         self.plot_blurred_image()
-        self.plot_channel_respose()
+        self.plot_quantum_efficiency()
+
+        self._rgb_responsivity = self._compute_responsivity(
+            self._quantum_efficiency
+            )
+        self.plot_responsivity()
 
         #self._compute_spectral_factor(
         #    spd_led=self._transmitter._led_spd,
@@ -584,26 +589,26 @@ class Camera:
         ax2.set_title('Blurred image with PSF')        
         plt.show()
 
-    def plot_channel_respose(self) -> None:
+    def plot_quantum_efficiency(self) -> None:
         plt.plot(
-            self._channel_response[:, 0],
-            self._channel_response[:, 1],
+            self._quantum_efficiency[:, 0],
+            self._quantum_efficiency[:, 1],
             color='r',
             linestyle='dashed'
         )
         plt.plot(
-            self._channel_response[:, 0],
-            self._channel_response[:, 2],
+            self._quantum_efficiency[:, 0],
+            self._quantum_efficiency[:, 2],
             color='g',
             linestyle='dashed'
         )
         plt.plot(
-            self._channel_response[:, 0],
-            self._channel_response[:, 3],
+            self._quantum_efficiency[:, 0],
+            self._quantum_efficiency[:, 3],
             color='b',
             linestyle='dashed'
         )
-        plt.title("Spectral Responsiity of Color Channels")
+        plt.title("Spectral Quantum Efficiency")
         plt.xlabel("Wavelength [nm]")
         plt.ylabel("Response")
         plt.grid()
@@ -616,4 +621,57 @@ class Camera:
         of the color channel, and the responsivity of the substrate.
         """
 
+    def _compute_responsivity(self, qe) -> np.ndarray:
+        """
+        This functions computes the responsivity for each color channel.
+        The R array has a follow specification:
+            column 0: wavelengths array
+            column 1: R responsivity array
+            column 2: B responsivity array
+            column 3: G responsivity array
+        """    
 
+        # Define an array to store the responsivity data
+        R = np.zeros_like(qe)
+
+        # Define constants
+        h = 6.62607015e-34   # Planck's constant (J.s)
+        c = 299792458        # Speed of light (m/s)
+        e = 1.602176634e-19  # Elementary charge (C)
+
+        # Define spectral quantum efficiency (QE) data
+        R[:, 0] = qe[:, 0] * 1e-9 # wavelength range from 400 to 700 nm
+
+        # Compute spectral responsivity
+        R[:, 1] = (R[:, 0] * qe[:, 1] * e) / (h * c)
+        R[:, 2] = (R[:, 0] * qe[:, 2] * e) / (h * c)
+        R[:, 3] = (R[:, 0] * qe[:, 3] * e) / (h * c)
+
+        return R
+
+    def plot_responsivity(self) -> None:
+        """ This function plots the responsivity of the color channels. """
+        
+        plt.plot(
+            self._rgb_responsivity[:, 0],
+            self._rgb_responsivity[:, 1],
+            color='r',
+            linestyle='solid'
+        )
+        plt.plot(
+            self._rgb_responsivity[:, 0],
+            self._rgb_responsivity[:, 2],
+            color='g',
+            linestyle='solid'
+        )
+        plt.plot(
+            self._rgb_responsivity[:, 0],
+            self._rgb_responsivity[:, 3],
+            color='b',
+            linestyle='solid'
+        )
+        plt.title(" Spectral RGB responsivity")
+        plt.xlabel("Wavelength [nm]")
+        plt.ylabel("Response [A/W]")
+        plt.grid()
+        plt.show()
