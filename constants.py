@@ -21,7 +21,9 @@ class Constants:
     # directory to save channel impulse response raw data
     REFLECTANCE_PATH = ROOT_DIR + "/surface_reflectances/"
     # Numbers of LED (Transmission channels)
-    NO_LEDS = 3    
+    NO_LEDS = 3
+    # Numbers of Color Channels 
+    NO_DETECTORS = 3    
     # Speed of light
     SPEED_OF_LIGHT = 299792458
     # IEEE 16-CSK constellation

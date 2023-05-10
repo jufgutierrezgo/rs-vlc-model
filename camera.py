@@ -15,7 +15,7 @@ from skimage import data
 
 
 import sys
-sys.path.insert(0, '/home/juanpc/python_phd/camera-models')
+sys.path.insert(0, './camera-models')
 
 #import transmitter module
 from transmitter import Transmitter as Transmitter
@@ -176,11 +176,22 @@ class Camera:
             )
         self.plot_responsivity()
 
-        #self._compute_spectral_factor(
-        #    spd_led=self._transmitter._led_spd,
-        #    reflectance=self._surface._reflectance,
-        #    channel_response=self._channel_response
-        #)
+        self._crosstalk = self._compute_crosstalk(
+            spd_led=self._transmitter._spd_1lm,
+            reflectance=self._surface._surface_reflectance,
+            channel_response=self._rgb_responsivity
+            )
+        
+        # self._image_bayern_mask, self._image_bayern = self._create_bayern_filter(
+        #    spd_factors=self._crosstalk,
+        #    height=self._resolution_h,
+        #    width=self._resolution_w
+        #    )
+        
+        # self._image_current = self._compute_image_current(
+        #    power=self._power_image,
+        #    bayern=self._image_bayern
+        #    )
         
     def _project_surface(self) -> np.ndarray:
 
@@ -590,36 +601,18 @@ class Camera:
         plt.show()
 
     def plot_quantum_efficiency(self) -> None:
-        plt.plot(
-            self._quantum_efficiency[:, 0],
-            self._quantum_efficiency[:, 1],
-            color='r',
-            linestyle='dashed'
-        )
-        plt.plot(
-            self._quantum_efficiency[:, 0],
-            self._quantum_efficiency[:, 2],
-            color='g',
-            linestyle='dashed'
-        )
-        plt.plot(
-            self._quantum_efficiency[:, 0],
-            self._quantum_efficiency[:, 3],
-            color='b',
-            linestyle='dashed'
-        )
+        for i in range(Kt.NO_LEDS):
+            plt.plot(        
+                self._quantum_efficiency[:, 0],
+                self._quantum_efficiency[:, i+1],
+                color=['r', 'g', 'b'][i],
+                linestyle='dashed'
+            )
         plt.title("Spectral Quantum Efficiency")
         plt.xlabel("Wavelength [nm]")
         plt.ylabel("Response")
         plt.grid()
-        plt.show()
-
-    def _compute_spectral_factor(self, spd_led, reflectance, channel_response, responsivity):
-        """
-        This function computes an spectral factor from the SPD of LED, 
-        the spectral reflectance of the surface, the spectral response
-        of the color channel, and the responsivity of the substrate.
-        """
+        plt.show()    
 
     def _compute_responsivity(self, qe) -> np.ndarray:
         """
@@ -652,26 +645,87 @@ class Camera:
     def plot_responsivity(self) -> None:
         """ This function plots the responsivity of the color channels. """
         
-        plt.plot(
-            self._rgb_responsivity[:, 0],
-            self._rgb_responsivity[:, 1],
-            color='r',
-            linestyle='solid'
-        )
-        plt.plot(
-            self._rgb_responsivity[:, 0],
-            self._rgb_responsivity[:, 2],
-            color='g',
-            linestyle='solid'
-        )
-        plt.plot(
-            self._rgb_responsivity[:, 0],
-            self._rgb_responsivity[:, 3],
-            color='b',
-            linestyle='solid'
-        )
+        for i in range(Kt.NO_LEDS):
+            plt.plot(
+                self._rgb_responsivity[:, 0] * 1e9,
+                self._rgb_responsivity[:, i+1],
+                color=['r', 'g', 'b'][i],
+                linestyle='solid'
+            )
         plt.title(" Spectral RGB responsivity")
         plt.xlabel("Wavelength [nm]")
         plt.ylabel("Response [A/W]")
         plt.grid()
         plt.show()
+
+    def _compute_crosstalk(self, spd_led, reflectance, channel_response):
+        """
+        This function computes an spectral factor from the SPD of LED, 
+        the spectral reflectance of the surface, the spectral response
+        of the color channel, and the responsivity of the substrate.
+        """
+        print("Computing crosstalk ... ")
+        
+        H = np.zeros((3, 3))
+
+        # print(spd_led.shape)
+        # print(reflectance.shape)
+        # print(channel_response.shape)
+
+        for i in range(Kt.NO_LEDS):
+            for j in range(Kt.NO_DETECTORS):
+                H[i][j] = np.sum(
+                    spd_led[:, i] * reflectance[:, 1] * channel_response[:, j+1]
+                )
+
+        print("Crosstalk matrix:\n", H)        
+
+        return H
+        
+    def _create_bayern_filter(self, spd_factors, height, width):
+        
+        # Define the Bayer filter pattern according SONY-IMX219PQ
+        bayer_block = np.array([[1, 2, 1, 2],
+                                [0, 1, 0, 1],
+                                [1, 2, 1, 2],
+                                [0, 1, 0, 1]])
+
+        # Define the color filter transmission values
+        red_transmission = spd_factors[0]
+        green_transmission = spd_factors[1]
+        blue_transmission = spd_factors[2]
+
+        # Define the color filter array
+        cfa = np.zeros((4, 4, 3))
+
+        # Assign color filter transmission values based on the Bayer filter pattern
+        cfa[bayer_block == 0, 0] = red_transmission
+        cfa[bayer_block == 1, 1] = green_transmission
+        cfa[bayer_block == 2, 2] = blue_transmission
+
+        # Print the color filter array
+        print(cfa)
+
+        # Create a Bayer filter pattern for the entire image
+        num_blocks_x = width // 4
+        num_blocks_y = height // 4
+
+        # print(width, num_blocks_x)
+        # print(height, num_blocks_y)
+
+        image_bayern_mask = np.tile(bayer_block, (num_blocks_y, num_blocks_x))
+        
+        # red filter
+        image_bayern = np.tile(cfa, (num_blocks_y, num_blocks_x))
+        
+        print(image_bayern.shape)
+
+        return image_bayern_mask, image_bayern
+
+    def _compute_image_current(self, power, bayern):
+        """
+        This function computes the photodetected current for each pixel.
+        """
+        current = power * bayern
+
+        return current

@@ -79,10 +79,12 @@ class Transmitter:
         if self._luminous_flux <= 0:
             raise ValueError("The luminous flux must be non-negative.")
 
-        # Initial function
-        self._create_led_spd()        
-        self._compute_iler(self._led_spd)
+
+        # Initial functions
+        self._create_spd_1w()
+        self._compute_iler(self._spd_1w)
         self._avg_power_color()
+        self._create_spd_1lm()
 
     @property
     def name(self) -> str:
@@ -213,29 +215,39 @@ class Transmitter:
         plt.show()
         
 
-    def _create_led_spd(self):
+    def _create_spd_1w(self):
         """
         This function creates the  spectrum of the LEDs 
         from central wavelengths and FWHM. 
         """
         # Array for wavelenght points from 380nm to (782-2)nm with 1nm steps
-        self._array_wavelenghts = np.arange(380, 781, 1)
+        self._array_wavelenghts = np.arange(400, 701, 1)
 
         # Numpy Array to save the spectral power distribution of each color channel
-        self._led_spd = np.zeros((self._array_wavelenghts.size, Kt.NO_LEDS))
+        self._spd_1w = np.zeros((self._array_wavelenghts.size, Kt.NO_LEDS))
         self._spd_normalized = np.zeros((self._array_wavelenghts.size, Kt.NO_LEDS))
 
         for i in range(Kt.NO_LEDS):
             # Arrays to estimates the normalized spectrum of LEDs
-            self._led_spd[:, i] = stats.norm.pdf(
+            self._spd_1w[:, i] = stats.norm.pdf(
                 self._array_wavelenghts, self._wavelengths[i], self._fwhm[i]/2)
             
-            self._spd_normalized[:, i] = self._led_spd[:, i]/np.max(self._led_spd[:, i])
-        
+            self._spd_normalized[:, i] = self._spd_1w[:, i]/np.max(self._spd_1w[:, i])
+    
+    def _create_spd_1lm(self):
+        """
+        This function computes the Spectral Power Distribution in each 
+        LED to produce 1 lumen.
+        """  
+        self._spd_1lm = np.zeros((self._array_wavelenghts.size, Kt.NO_LEDS))
+
+        for i in range(Kt.NO_LEDS):
+            self._spd_1lm[:, i] = self._avg_power[i] * self._spd_1w[:, i]
+
     def plot_spd_at_1lm(self):
         # plot red spd data
         for i in range(Kt.NO_LEDS):
-            plt.plot(self._array_wavelenghts, self._avg_power[i]*self._led_spd[:, i])
+            plt.plot(self._array_wavelenghts, self._spd_1lm[:, i])
         
         plt.title("Spectral Power Distribution at 1 Lumen/channel")
         plt.xlabel("Wavelength [nm]")
@@ -249,7 +261,7 @@ class Transmitter:
             plt.plot(
                 self._array_wavelenghts,
                 # self._spd_normalized[:, i]
-                self._led_spd[:, i]
+                self._spd_1w[:, i]
                 )
         
         plt.title("Normalized Spectral Power Distribution")
