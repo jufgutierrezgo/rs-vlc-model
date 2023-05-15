@@ -182,11 +182,11 @@ class Camera:
             channel_response=self._rgb_responsivity
             )
         
-        # self._image_bayern_mask, self._image_bayern = self._create_bayern_filter(
-        #    spd_factors=self._crosstalk,
-        #    height=self._resolution_h,
-        #    width=self._resolution_w
-        #    )
+        self._image_bayern_mask, self._image_bayern_crosstalk = self._create_bayern_filter(
+            Hmat=self._crosstalk,
+            height=self._resolution_h,
+            width=self._resolution_w
+            )
         
         # self._image_current = self._compute_image_current(
         #    power=self._power_image,
@@ -682,7 +682,7 @@ class Camera:
 
         return H
         
-    def _create_bayern_filter(self, spd_factors, height, width):
+    def _create_bayern_filter(self, Hmat, height, width):
         
         # Define the Bayer filter pattern according SONY-IMX219PQ
         bayer_block = np.array([[1, 2, 1, 2],
@@ -690,21 +690,26 @@ class Camera:
                                 [1, 2, 1, 2],
                                 [0, 1, 0, 1]])
 
-        # Define the color filter transmission values
-        red_transmission = spd_factors[0]
-        green_transmission = spd_factors[1]
-        blue_transmission = spd_factors[2]
-
+        
         # Define the color filter array
         cfa = np.zeros((4, 4, 3))
 
         # Assign color filter transmission values based on the Bayer filter pattern
-        cfa[bayer_block == 0, 0] = red_transmission
-        cfa[bayer_block == 1, 1] = green_transmission
-        cfa[bayer_block == 2, 2] = blue_transmission
+        cfa[bayer_block == 0, 0] = Hmat[0, 0]
+        cfa[bayer_block == 0, 1] = Hmat[0, 1]
+        cfa[bayer_block == 0, 2] = Hmat[0, 2]
+
+        cfa[bayer_block == 1, 0] = Hmat[1, 0]
+        cfa[bayer_block == 1, 1] = Hmat[1, 1]
+        cfa[bayer_block == 1, 2] = Hmat[1, 2]
+
+        cfa[bayer_block == 2, 0] = Hmat[2, 0]
+        cfa[bayer_block == 2, 1] = Hmat[2, 1]
+        cfa[bayer_block == 2, 2] = Hmat[2, 2]
 
         # Print the color filter array
-        print(cfa)
+        # print("Color Filter Array - Crosstalk")
+        # print(cfa)
 
         # Create a Bayer filter pattern for the entire image
         num_blocks_x = width // 4
@@ -715,12 +720,17 @@ class Camera:
 
         image_bayern_mask = np.tile(bayer_block, (num_blocks_y, num_blocks_x))
         
-        # red filter
-        image_bayern = np.tile(cfa, (num_blocks_y, num_blocks_x))
+        # create an zeros array to store crosstalk and bayer filter
+        image_bayer_crosstalk = np.zeros((height, width, 3))
         
-        print(image_bayern.shape)
+        image_bayer_crosstalk[:, :, 0] = np.tile(
+            cfa[:, :, 0], (num_blocks_y, num_blocks_x)) 
+        image_bayer_crosstalk[:, :, 1] = np.tile(
+            cfa[:, :, 1], (num_blocks_y, num_blocks_x))
+        image_bayer_crosstalk[:, :, 2] = np.tile(
+            cfa[:, :, 2], (num_blocks_y, num_blocks_x))        
 
-        return image_bayern_mask, image_bayern
+        return image_bayern_mask, image_bayer_crosstalk
 
     def _compute_image_current(self, power, bayern):
         """
