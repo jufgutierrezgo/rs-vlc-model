@@ -25,6 +25,7 @@ class Transmitter:
         fwhm: np.ndarray,
         mlambert: float = 1,        
         modulation: str = 'ieee16',
+        frequency: float = 1000,
         luminous_flux: float = 1
             ) -> None:
 
@@ -74,6 +75,10 @@ class Transmitter:
             self._order_csk = 4
         else:
             raise ValueError("Modulation is not valid.")
+
+        self._frequency = np.float32(frequency)        
+        if self._frequency <= 0:
+            raise ValueError("Frequency must be non-negative.")
 
         self._luminous_flux = np.float32(luminous_flux)        
         if self._luminous_flux <= 0:

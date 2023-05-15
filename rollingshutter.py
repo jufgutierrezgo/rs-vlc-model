@@ -33,10 +33,8 @@ import logging
 
 class Camera:
     """
-    This class defines the camera properties
-    """
-
-    _DECIMALS = 2  # how many decimal places to use in print
+    This class defines the rolling shutter adquisition properties
+    """    
 
     def __init__(
         self,
@@ -46,4 +44,20 @@ class Camera:
         t_start: float,
         iso: float
             ) -> None:
-    
+
+        self._name = name
+
+        self._t_exposure = np.float32(t_exposure)        
+        if self._t_exposure <= 0:
+            raise ValueError("The exposure time must be a float non-negative.")
+        
+        self._t_rowdelay = np.float32(t_rowdelay)        
+        if self._t_rowdelay <= 0:
+            raise ValueError("The row delay time must be a float non-negative.")
+
+        self._t_start = np.float32(t_start)        
+        if self._t_rowdelay <= 0:
+            raise ValueError(
+                "The row adquisition start time must be non-negative."
+                )
+
