@@ -82,17 +82,29 @@ class RollingShutter:
         
         self._compute_row_bins()
 
-    def _compute_row_bins(self) -> None:
+    def _compute_row_bins(self) -> np.ndarray:
         """ This function computes the row bins respect to each of symbols. """
 
+        # compute the time of each symbol. It is equal to 1/f.
         t_symbol = 1/self._transmitter._frequency
-        no_symbol = np.arange(1,self._transmitter._no_symbols+1)
+
+        # compute the symbol corresponding to the last row 
+        last_symbol = int(
+                ((self._t_rowdelay * self._camera._resolution_h)
+                + self._t_start) / t_symbol 
+            ) + 1
+
+        no_symbol = np.arange(1, last_symbol+1)
         
         index_bins = (
             ((no_symbol*t_symbol) - self._t_start - self._t_exposure/2)
             / self._t_rowdelay        
             ).astype(int)
-        
+        index_bins[-1] = self._camera._resolution_h - 1
+
+        print("Row bins:")
         print(index_bins)
+
+        return index_bins
         
             
