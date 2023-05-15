@@ -26,6 +26,7 @@ class Transmitter:
         mlambert: float = 1,        
         modulation: str = 'ieee16',
         frequency: float = 1000,
+        no_symbols: int = 1000,
         luminous_flux: float = 1
             ) -> None:
 
@@ -79,6 +80,16 @@ class Transmitter:
         self._frequency = np.float32(frequency)        
         if self._frequency <= 0:
             raise ValueError("Frequency must be non-negative.")
+
+        if isinstance(no_symbols, (int, float)):
+            self._no_symbols = int(no_symbols)        
+        else:
+            raise ValueError(
+                "No. of symbols must be a positive integer.")
+        
+        if self._no_symbols <= 0:
+            raise ValueError(
+                "No. of symbols must be greater than zero.")
 
         self._luminous_flux = np.float32(luminous_flux)        
         if self._luminous_flux <= 0:
@@ -328,3 +339,34 @@ class Transmitter:
         self._total_power = self._luminous_flux*np.sum(self._avg_power)
         # Manual setted of avg_power by each color channels
         #self._avg_power = np.array([1, 1, 1])
+
+    def _create_symbols(self) -> None:
+        """
+        This function creates the symbols array to transmit.
+        """
+        # create a random symbols identifier (decimal) for payload
+        self._symbols_decimal = np.random.randint(
+                0,
+                self._order_csk-1,
+                (self._no_symbols),
+                dtype='int16'
+            )
+
+        self._symbols_payload = np.zeros((Kt.NO_LEDS, self._no_symbols))
+
+        self._constellation = self._constellation
+        
+        for index, counter in zip(self._symbols_decimal, range(self._no_symbols)):
+            self._symbols_payload[:, counter] = self._constellation[:, index]
+
+        # Define the number of symbols for delimiter header
+        self._delimiter_set = 3
+
+        # add to the payload three base-set of symbols
+        self._symbols_csk = np.concatenate((
+                np.identity(Kt.NO_LEDS),
+                np.identity(Kt.NO_LEDS),
+                np.identity(Kt.NO_LEDS),
+                self._symbols_payload),
+                axis=1
+            )

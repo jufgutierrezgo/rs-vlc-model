@@ -45,8 +45,7 @@ class RollingShutter:
         t_start: float,
         iso: float,
         transmitter: Transmitter,
-        camera: Camera
-        
+        camera: Camera        
             ) -> None:
 
         self._name = name
@@ -70,3 +69,30 @@ class RollingShutter:
             raise ValueError(
                 "The ISO must be integer non-negative."
                 )
+        
+        self._transmitter = transmitter
+        if not type(transmitter) is Transmitter:
+            raise ValueError(
+                "Transmiyyer attribute must be an object type Transmitter.")
+        
+        self._camera = camera
+        if not type(camera) is Camera:
+            raise ValueError(
+                "Camera attribute must be an object type Camera.")
+        
+        self._compute_row_bins()
+
+    def _compute_row_bins(self) -> None:
+        """ This function computes the row bins respect to each of symbols. """
+
+        t_symbol = 1/self._transmitter._frequency
+        no_symbol = np.arange(1,self._transmitter._no_symbols+1)
+        
+        index_bins = (
+            ((no_symbol*t_symbol) - self._t_start - self._t_exposure/2)
+            / self._t_rowdelay        
+            ).astype(int)
+        
+        print(index_bins)
+        
+            
