@@ -17,21 +17,22 @@ from skimage import data
 import sys
 sys.path.insert(0, './camera-models')
 
-#import transmitter module
+# import transmitter module
 from transmitter import Transmitter as Transmitter
-
-#import surface module
+# import surface module 
 from surface import Surface as Surface
+# import camera module 
+from camera import Camera
 
 from typing import Optional
 
-from camera import Camera
+
 
 import logging
 
 # logging.basicConfig(format=FORMAT)
 
-class Camera:
+class RollingShutter:
     """
     This class defines the rolling shutter adquisition properties
     """    
@@ -42,7 +43,10 @@ class Camera:
         t_exposure: float,
         t_rowdelay: float,
         t_start: float,
-        iso: float
+        iso: float,
+        transmitter: Transmitter,
+        camera: Camera
+        
             ) -> None:
 
         self._name = name
@@ -61,3 +65,8 @@ class Camera:
                 "The row adquisition start time must be non-negative."
                 )
 
+        self._iso = np.int(iso)        
+        if self._iso <= 0:
+            raise ValueError(
+                "The ISO must be integer non-negative."
+                )
