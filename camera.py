@@ -457,7 +457,8 @@ class Camera:
             n_surface: np.ndarray,
             area_surf: float,
             m_lambert: float,
-            pixel_area: float
+            pixel_area: float,
+            luminous_flux: float
                 ) -> np.ndarray:
         
         print("Computing the irradiance in each pixel ...")
@@ -499,7 +500,7 @@ class Camera:
         # print("Cos-Theta Pixel:")
         # print(cos_theta_pixel)
 
-        power_pixel = (
+        power_pixel = (luminous_flux)(
             (m_lambert+1)/(2*np.pi*dist_led**2) *
             (cos_phi_led**m_lambert) *
             cos_theta_surface *
