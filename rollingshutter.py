@@ -13,6 +13,7 @@ from scipy.stats import norm
 # Skiimage import
 from skimage import data
 
+import cv2
 
 import sys
 sys.path.insert(0, './camera-models')
@@ -81,7 +82,7 @@ class RollingShutter:
                 "Camera attribute must be an object type Camera.")
         
         self._index_row_bins = self._compute_row_bins()
-        self._current_image = self._compute_image_current(
+        self._image_symbols = self._compute_image_current(
             symbols_csk=self._transmitter._symbols_csk,
             im_bayern_crostalk=self._camera._image_bayern_crosstalk,
             im_gain=camera._power_image,
@@ -90,6 +91,12 @@ class RollingShutter:
             width=self._camera._resolution_w
         )
 
+        self._rgb_image = self._bayerGBGR_to_RGB(
+            bayer=self._image_symbols,
+            height=self._camera._resolution_h,
+            width=self._camera._resolution_w)
+
+        
     def _compute_row_bins(self) -> np.ndarray:
         """ This function computes the row bins respect to each of symbols. """
 
@@ -143,14 +150,52 @@ class RollingShutter:
             # print(symbols_csk[:, symbol-1].reshape(1, 1, 3))
 
         image_current = im_gain * image_color
-        # image_current = image_color
+        image_bayer_norm = image_current / np.max(image_current)
+        
 
-        return image_current
+        return image_bayer_norm
 
     def plot_current_image(self):
         """ Plot the image of the photocurrent by each pixel. """        
         
         # Plot power image
-        plt.imshow(self._current_image, cmap='gray', interpolation='nearest')
+        plt.imshow(self._image_symbols, cmap='gray', interpolation='nearest')
         plt.title("Image of the normalized received power")        
+        plt.show()
+
+    def _bayerGBGR_to_RGB(self, bayer, height, width):
+        """ Plot the image of the photocurrent by each pixel. """        
+        
+        G_ISO = 255
+
+        rgb = np.zeros((height, width, 3), dtype=np.uint8)
+        bayer_8bits = (G_ISO * bayer).astype(np.uint8)
+
+        # Green pixels
+        green1 = G_ISO * bayer[0::2, 0::2]
+        green2 = G_ISO * bayer[1::2, 1::2]
+
+        # Red pixels
+        red = G_ISO * bayer[1::2, 0::2]
+
+        # Blue pixels
+        blue = G_ISO * bayer[0::2, 1::2]
+
+        # Assign the green values to the green channel
+        rgb[0::2, 0::2, 1] = green1
+        rgb[1::2, 1::2, 1] = green2
+
+        # Assign the red values to the red channel
+        rgb[1::2, 0::2, 0] = red
+
+        # Assign the blue values to the blue channel
+        rgb[0::2, 1::2, 2] = blue
+
+        rgb_cv = cv2.cvtColor(bayer_8bits, cv2.COLOR_BAYER_RG2BGR)
+
+        return rgb_cv
+        
+    def plot_color_image(self):
+
+        plt.imshow(self._rgb_image)
         plt.show()

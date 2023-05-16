@@ -682,14 +682,11 @@ class Camera:
     def _create_bayern_filter(self, Hmat, height, width):
         
         # Define the Bayer filter pattern according SONY-IMX219PQ
-        bayer_block = np.array([[1, 2, 1, 2],
-                                [0, 1, 0, 1],
-                                [1, 2, 1, 2],
-                                [0, 1, 0, 1]])
-
+        bayer_block = np.array([[0, 1],
+                                [1, 2]])
         
         # Define the color filter array
-        cfa = np.zeros((4, 4, 3))
+        cfa = np.zeros((2, 2, 3))
 
         # Assign color filter transmission values based on the Bayer filter pattern
         cfa[bayer_block == 0, 0] = Hmat[0, 0]
@@ -709,8 +706,8 @@ class Camera:
         # print(cfa)
 
         # Create a Bayer filter pattern for the entire image
-        num_blocks_x = width // 4
-        num_blocks_y = height // 4
+        num_blocks_x = width // 2
+        num_blocks_y = height // 2
 
         # print(width, num_blocks_x)
         # print(height, num_blocks_y)
