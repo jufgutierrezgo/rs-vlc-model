@@ -82,5 +82,13 @@ camera = Camera(
     sensor='SonyStarvisBSI'
 )
 
-
+rollingshutter = RS(
+    name="rs",
+    t_exposure=85e-6,
+    t_rowdelay=18.904e-6,
+    t_start=0,
+    iso=200,
+    transmitter=transmitter,
+    camera=camera
+)
 

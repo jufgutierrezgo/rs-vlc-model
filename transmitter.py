@@ -101,6 +101,7 @@ class Transmitter:
         self._compute_iler(self._spd_1w)
         self._avg_power_color()
         self._create_spd_1lm()
+        self._create_symbols()
 
     @property
     def name(self) -> str:

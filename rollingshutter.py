@@ -80,7 +80,15 @@ class RollingShutter:
             raise ValueError(
                 "Camera attribute must be an object type Camera.")
         
-        self._compute_row_bins()
+        self._index_row_bins = self._compute_row_bins()
+        self._current_image = self._compute_image_current(
+            symbols_csk=self._transmitter._symbols_csk,
+            im_bayern_crostalk=self._camera._image_bayern_crosstalk,
+            im_gain=camera._power_image,
+            index_bins=self._index_row_bins,
+            height=self._camera._resolution_h,
+            width=self._camera._resolution_w
+        )
 
     def _compute_row_bins(self) -> np.ndarray:
         """ This function computes the row bins respect to each of symbols. """
@@ -94,17 +102,55 @@ class RollingShutter:
                 + self._t_start) / t_symbol 
             ) + 1
 
-        no_symbol = np.arange(1, last_symbol+1)
+        no_symbol = np.arange(0, last_symbol+1)
         
         index_bins = (
             ((no_symbol*t_symbol) - self._t_start - self._t_exposure/2)
             / self._t_rowdelay        
-            ).astype(int)
-        index_bins[-1] = self._camera._resolution_h - 1
+            ).astype(int) + 1
+        index_bins[-1] = self._camera._resolution_h
+        index_bins[0] = 0
 
         print("Row bins:")
         print(index_bins)
 
         return index_bins
+
+    def _compute_image_current(
+            self, 
+            symbols_csk, 
+            im_bayern_crostalk, 
+            im_gain,
+            index_bins,
+            height,
+            width) -> np.ndarray:
+        """ This function computes the image with the transmitter symbols. """
+
+        image_current = np.zeros((height, width))
+        image_color = np.zeros((height, width))
+
+        for symbol in np.arange(1,np.size(index_bins)):
+            image_color[
+                index_bins[symbol-1]: index_bins[symbol], :
+                ] = np.sum(
+                    np.multiply(
+                        im_bayern_crostalk[
+                            index_bins[symbol-1]: index_bins[symbol], :, :],
+                        symbols_csk[:, symbol-1].reshape(1, 1, 3)
+                    ),
+                axis=2
+                )
+            # print(symbols_csk[:, symbol-1].reshape(1, 1, 3))
+
+        image_current = im_gain * image_color
+        # image_current = image_color
+
+        return image_current
+
+    def plot_current_image(self):
+        """ Plot the image of the photocurrent by each pixel. """        
         
-            
+        # Plot power image
+        plt.imshow(self._current_image, cmap='gray', interpolation='nearest')
+        plt.title("Image of the normalized received power")        
+        plt.show()

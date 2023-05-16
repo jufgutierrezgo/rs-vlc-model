@@ -160,16 +160,7 @@ class Camera:
             pixels_inside=self._pixels_inside,
             height=self._resolution_h,
             width=self._resolution_w
-            )
-        self.plot_power_image()
-        self._blurred_image = self._add_blur(
-            self._power_image,
-            size=7,
-            center=5.5,
-            sigma=3)
-        
-        self.plot_blurred_image()
-        self.plot_quantum_efficiency()
+            )        
 
         self._rgb_responsivity = self._compute_responsivity(
             self._quantum_efficiency
@@ -576,8 +567,9 @@ class Camera:
         plt.title("Image of the normalized received power")        
         plt.show()
 
-    def _add_blur(self, power_image, size=7, center=3.5, sigma=1.5) -> np.ndarray:    
+    def add_blur(self, size=7, center=3.5, sigma=1.5) -> np.ndarray:    
         """ This function applies the point spread function of the power image. """
+        power_image = self._power_image
 
         print("Adding blur effect ...")
         # Generate a 7x7 PSF with a normal distribution
@@ -588,6 +580,7 @@ class Camera:
         # Convolve the image with the PSF
         blurred = signal.convolve2d(power_image, psf, mode='same')
 
+        self._power_image = blurred
         return blurred
     
     def plot_blurred_image(self) -> None:
@@ -596,7 +589,7 @@ class Camera:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
         ax1.imshow(self._power_image, cmap='gray')
         ax1.set_title('Non-blurred image')
-        ax2.imshow(self._blurred_image, cmap='gray')
+        ax2.imshow(self._power_image, cmap='gray')
         ax2.set_title('Blurred image with PSF')        
         plt.show()
 
@@ -674,8 +667,10 @@ class Camera:
 
         for i in range(Kt.NO_LEDS):
             for j in range(Kt.NO_DETECTORS):
-                H[i][j] = np.sum(
-                    spd_led[:, i] * reflectance[:, 1] * channel_response[:, j+1]
+                H[j, i] = np.sum(
+                    spd_led[:, i] * 
+                    reflectance[:, 1] * 
+                    channel_response[:, j+1]
                 )
 
         print("Crosstalk matrix:\n", H)        
@@ -731,11 +726,3 @@ class Camera:
             cfa[:, :, 2], (num_blocks_y, num_blocks_x))        
 
         return image_bayern_mask, image_bayer_crosstalk
-
-    def _compute_image_current(self, power, bayern):
-        """
-        This function computes the photodetected current for each pixel.
-        """
-        current = power * bayern
-
-        return current
