@@ -153,13 +153,14 @@ class Camera:
             n_surface=self._surface._normal,
             area_surf=self._surface._area,
             m_lambert=self._transmitter._mlambert,
-            pixel_area=self._pixel_area
+            pixel_area=self._pixel_area,
+            luminous_flux=self._transmitter.luminous_flux
         )
         self._power_image = self._compute_power_image(
             pixels_power=self._pixel_power,
             pixels_inside=self._pixels_inside,
             height=self._resolution_h,
-            width=self._resolution_w
+            width=self._resolution_w            
             )        
 
         self._rgb_responsivity = self._compute_responsivity(
@@ -500,7 +501,7 @@ class Camera:
         # print("Cos-Theta Pixel:")
         # print(cos_theta_pixel)
 
-        power_pixel = (luminous_flux)(
+        power_pixel = (luminous_flux)*(
             (m_lambert+1)/(2*np.pi*dist_led**2) *
             (cos_phi_led**m_lambert) *
             cos_theta_surface *
