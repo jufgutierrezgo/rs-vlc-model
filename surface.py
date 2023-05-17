@@ -172,10 +172,10 @@ class Surface:
 
     def _group_vertices(self) -> None:
         self._vertices =  np.concatenate((
-                [self._vertex1],
-                [self._vertex2],
-                [self._vertex3],
-                [self._vertex4]
+                [self._vertex1] + self._position,
+                [self._vertex2] + self._position,
+                [self._vertex3] + self._position,
+                [self._vertex4] + self._position
                 ), 
                 axis=0    
             )   
