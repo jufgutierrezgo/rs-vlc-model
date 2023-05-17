@@ -156,7 +156,7 @@ class Camera:
             pixel_area=self._pixel_area,
             luminous_flux=self._transmitter.luminous_flux
         )
-        self._power_image = self._compute_power_image(
+        self._power_image, self._noblurred_image = self._compute_power_image(
             pixels_power=self._pixel_power,
             pixels_inside=self._pixels_inside,
             height=self._resolution_h,
@@ -557,7 +557,9 @@ class Camera:
         for i in range(len(pixels_power)):
             power_image[pixels_inside[1, i], pixels_inside[0, i]] = pixels_power[i]
 
-        return power_image
+        no_blurred_image =  power_image
+
+        return power_image, no_blurred_image
      
     def plot_power_image(self):
         """ Plot the image of the received power. """
@@ -572,7 +574,7 @@ class Camera:
     def add_blur(self, size=7, center=3.5, sigma=1.5) -> np.ndarray:    
         """ This function applies the point spread function of the power image. """
         power_image = self._power_image
-
+        
         print("Adding blur effect ...")
         # Generate a 7x7 PSF with a normal distribution
         x, y = np.meshgrid(np.arange(size), np.arange(size))        
@@ -589,7 +591,7 @@ class Camera:
         """ Plot the original image and the blurred image """
        
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
-        ax1.imshow(self._power_image, cmap='gray')
+        ax1.imshow(self._noblurred_image, cmap='gray')
         ax1.set_title('Non-blurred image')
         ax2.imshow(self._power_image, cmap='gray')
         ax2.set_title('Blurred image with PSF')        
