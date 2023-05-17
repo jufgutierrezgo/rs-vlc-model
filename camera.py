@@ -162,7 +162,7 @@ class Camera:
             height=self._resolution_h,
             width=self._resolution_w            
             )        
-
+        print(self._power_image)
         self._rgb_responsivity = self._compute_responsivity(
             self._quantum_efficiency
             )
@@ -462,7 +462,7 @@ class Camera:
             luminous_flux: float
                 ) -> np.ndarray:
         
-        print("Computing the irradiance in each pixel ...")
+        print("Computing the irradiance in each pixel inside of polygon...")
 
         dist_led = np.linalg.norm(surface_points - pos_led, axis=1)
         dist_cam = np.linalg.norm(pos_cam - surface_points, axis=1)
@@ -480,26 +480,26 @@ class Camera:
             dist_cam.reshape((-1, 1))
             )
 
-        # print("Diff:")
-        # print(surface_points - pos_led)
-        # print("Unit Vector LED")
-        # print(unit_vled)
-        # print("Distance")
-        # print(dist_led)
+        print("Diff:")
+        print(surface_points - pos_led)
+        print("Unit Vector LED")
+        print(unit_vled)
+        print("Distance")
+        print(dist_led)
 
         cos_phi_led = (unit_vled).dot(n_led)
         cos_theta_surface = (-unit_vled).dot(n_surface)
         cos_phi_surface = (unit_vcam).dot(n_surface)
         cos_theta_pixel = (-unit_vcam).dot(n_cam)
 
-        # print("Cos-Phi LED:")
-        # print(cos_phi_led)
-        # print("Cos-Theta Surface:")
-        # print(cos_theta_surface)
-        # print("Cos-Phi Surface:")
-        # print(cos_phi_surface)
-        # print("Cos-Theta Pixel:")
-        # print(cos_theta_pixel)
+        print("Cos-Phi LED:")
+        print(cos_phi_led)
+        print("Cos-Theta Surface:")
+        print(cos_theta_surface)
+        print("Cos-Phi Surface:")
+        print(cos_phi_surface)
+        print("Cos-Theta Pixel:")
+        print(cos_theta_pixel)
 
         power_pixel = (luminous_flux)*(
             (m_lambert+1)/(2*np.pi*dist_led**2) *
@@ -512,8 +512,8 @@ class Camera:
             pixel_area
             )
         
-        # print("Power in each pixel")
-        # print(power_pixel)
+        print("Power in each pixel")
+        print(power_pixel)
 
         return power_pixel
 
@@ -536,7 +536,7 @@ class Camera:
             (-0.5, 0.5, 0.1),
             (0.5, 0.5, 0.1),
             (0.5, -0.5, 0.1)      
-            ]) + origin_led
+            ])/5 + origin_led
 
         # Define the 12 edges of the rectangular parallelepiped
         edges = np.array([(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4), (0, 4), (1, 5), (2, 6), (3, 7)])

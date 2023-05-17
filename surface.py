@@ -187,6 +187,8 @@ class Surface:
         n = np.cross(p2-p1, p3-p1)   # Compute normal vector of the plane
         n_unit = n / np.linalg.norm(n)
 
+        # print("Normal vector of surface: ",n_unit)
+
         return n_unit
 
     def _compute_area(self, v1, v2, v3, v4) -> float:

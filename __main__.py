@@ -4,56 +4,42 @@ from transmitter import Transmitter as Transmitter
 from surface import Surface as Surface
 # Import Camera module
 from camera import Camera as Camera
+from rollingshutter import RollingShutter as RS
 # Import NUmpy library
 import numpy as np
 
 transmitter = Transmitter(
         "Led1",
-        position=[3, 4, 10],
+        position=[3, 0, 10],
         normal=[0, 0, -1],
         mlambert=1,
-        wavelengths=[624, 516, 468],
-        fwhm=[14.55, 29.05, 21.62],
+        wavelengths=[620, 530, 475],
+        fwhm=[20, 30, 20],
         modulation='ieee16',
+        frequency=4000,
+        no_symbols=100,
         luminous_flux=5000
     )
-transmitter.plot_spd_normalized()
-transmitter.plot_spd_at_1lm()
-transmitter.plot_led_pattern()
+# transmitter.plot_spd_normalized()
+# transmitter.plot_spd_at_1lm()
+# transmitter.plot_led_pattern()
 print(transmitter)
 
-surface1 = Surface(
+surface = Surface(
     name="surfacePlaster",
-    position=[0, 0, 1],
+    position=[3, 4, 2],
     reflectance='plaster',
-    vertex1=[-1.0, 5.0, 4.0],
-    vertex2=[1.0, 3.0, 5.0],
-    vertex3=[1.0, 2.0, 2.0],
-    vertex4=[-1.0, 4.0, 1.0]
+    vertex1=[-1, 0, -1],
+    vertex2=[1, 0, -1],
+    vertex3=[1, 0, 1],
+    vertex4=[-1, 0, 1]
     )
-surface2 = Surface(
-    name="surfacePlaster",
-    position=[0, 0, 1],
-    reflectance='plaster',
-    vertex1=[0.0, 1.0, 0.0],
-    vertex2=[2.0, 1.0, 0.0],
-    vertex3=[2.0, 1.0, 2.0],
-    vertex4=[0.0, 1.0, 2.0]
-    )
-surface3 = Surface(
-    name="surfacePlaster",
-    position=[0, 0, 1],
-    reflectance='plaster',
-    vertex1=[1.0, 2.0, 0.0],
-    vertex2=[5.0, 2.0, 0.0],
-    vertex3=[5.0, 6.0, 4.0],
-    vertex4=[1.0, 6.0, 4.0]
-    )
-surface3.plot_reflectance()
-surface3._group_vertices()
+# surface.plot_reflectance()
+surface._group_vertices()
 
-MX = 1e2  # number of pixels per unit distance in image coordinates in x direction
-MY = 1e2  # number of pixels per unit distance in image coordinates in y direction
+
+MX = 2e0  # number of pixels per unit distance in image coordinates in x direction
+MY = 2e0  # number of pixels per unit distance in image coordinates in y direction
 FOCAL_LENGTH = 3/MX  # focal length
 PX= 3/MX  # principal point x-coordinate
 PY= 2/MY  # principal point y-coordinate
@@ -77,7 +63,7 @@ camera = Camera(
     centre=C,
     image_height=IMAGE_HEIGTH,
     image_width=IMAGE_WIDTH,    
-    surface=surface3,
+    surface=surface,
     transmitter=transmitter,
     sensor='SonyStarvisBSI'
 )
@@ -91,4 +77,4 @@ rollingshutter = RS(
     transmitter=transmitter,
     camera=camera
 )
-
+rollingshutter.plot_color_image()
