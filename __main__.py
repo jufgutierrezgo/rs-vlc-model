@@ -36,6 +36,8 @@ surface = Surface(
     )
 # surface.plot_reflectance()
 surface._group_vertices()
+print(surface)
+print(surface._vertices)
 
 
 MX = 2e0  # number of pixels per unit distance in image coordinates in x direction

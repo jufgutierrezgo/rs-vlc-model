@@ -138,12 +138,9 @@ class Camera:
         self.plot_binary_image(self._pixels_inside, self._resolution_h, self._resolution_w)
         self._intersection_points = self._compute_intersection(
             self._points3d_inside, 
-            self._centre,
-            self._surface._normal,
-            self._surface._vertex1
+            self._centre,            
+            self._surface._vertices
             )
-        # print("Intersection points with surface")
-        # print(self._intersection_points)
         self._pixel_power = self._compute_pixel_power(
             pos_cam=self._centre,
             n_cam=self._normal_camera,
@@ -426,8 +423,7 @@ class Camera:
             self,
             points3d_inside,
             origin,
-            n,
-            p1) -> None:
+            vertices) -> None:
         """
         Return the array with the 3D coordinates of the intersection 
         points between pixels vectors and the surface.
@@ -437,15 +433,23 @@ class Camera:
         # Define the pixels vector (camera center and grid3d)
         d = points3d_inside - origin
 
+        n = np.cross(vertices[1]-vertices[0], vertices[2]-vertices[0])  # Compute normal vector of the plane
+
         # Compute scalar parameter t
         t = np.reshape(
-            (p1 - origin).dot(n) / d.dot(n),
+            (vertices[0] - origin).dot(n) / d.dot(n),
             (-1,1)
             )
 
         # Compute intersection point
         intersect = origin + t * d
         
+        print("Points 3D:")
+        print(points3d_inside)
+
+        print("Intersection camera --> surface points:")
+        print(intersect)
+
         return intersect
         
     def _compute_pixel_power(
