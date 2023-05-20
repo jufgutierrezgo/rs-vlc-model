@@ -82,7 +82,7 @@ class RollingShutter:
                 "Camera attribute must be an object type Camera.")
         
         self._index_row_bins = self._compute_row_bins()
-        self._image_symbols = self._compute_image_current(
+        self._image_current = self._compute_image_current(
             symbols_csk=self._transmitter._symbols_csk,
             im_bayern_crostalk=self._camera._image_bayern_crosstalk,
             im_gain=camera._power_image,
@@ -90,12 +90,20 @@ class RollingShutter:
             height=self._camera._resolution_h,
             width=self._camera._resolution_w
         )
-
+        # self._image_noise = self._add_dark_current(
+        #    idark=self._camera._idark,
+        #    image=self._image_current
+        #)
         self._rgb_image = self._bayerGBGR_to_RGB(
-            bayer=self._image_symbols,
+            bayer=self._image_current,
             height=self._camera._resolution_h,
             width=self._camera._resolution_w)
 
+        self._image_noise = self._add_noise_to_raw_image(
+            raw_image=self._rgb_image,
+            dark_current=camera.idark,
+            noise_scaling_factor=1e1
+        )
         
     def _compute_row_bins(self) -> np.ndarray:
         """ This function computes the row bins respect to each of symbols. """
@@ -150,22 +158,48 @@ class RollingShutter:
             # print(symbols_csk[:, symbol-1].reshape(1, 1, 3))
 
         image_current = im_gain * image_color
-        image_bayer_norm = image_current / np.max(image_current)
-        
+        image_bayer_norm = image_current / np.max(image_current)        
 
-        return image_bayer_norm
-
+        return image_current
+    
     def plot_current_image(self):
         """ Plot the image of the photocurrent by each pixel. """        
         
         # Plot power image
-        plt.imshow(self._image_symbols, cmap='gray', interpolation='nearest')
+        plt.imshow(self._image_current, cmap='gray', interpolation='nearest')
         plt.title("Image of the normalized received power")        
         plt.show()
+
+    def _add_dark_current(self, idark, image) -> np.ndarray:
+        """ 
+        This function adds gaussian noise to the electrical-current image 
+        according to the idark parameter.
+        """
+        # Equal the standard deviation to dark current
+        std_deviation = idark
+        # Generate an sample of white noise
+        mean_noise = 0
+        noise_current = np.random.normal(
+            mean_noise, 
+            std_deviation,
+            (image.shape[0], image.shape[1])
+            )
+        # Noise up the original signal
+        image_noise = image + noise_current      
+        
+        # noise = np.zeros_like(image)
+        # cv2.randn(noise, mean_noise, idark)
+
+        # Add noise to image
+        # image_noise = cv2.add(image, noise)
+        return image_noise
 
     def _bayerGBGR_to_RGB(self, bayer, height, width):
         """ Plot the image of the photocurrent by each pixel. """        
         
+        # bayer = bayer / np.max(bayer)
+        bayer = 9e11 * bayer
+        print(np.max(bayer))
         G_ISO = 255
 
         rgb = np.zeros((height, width, 3), dtype=np.uint8)
@@ -189,13 +223,42 @@ class RollingShutter:
         rgb[1::2, 0::2, 0] = red
 
         # Assign the blue values to the blue channel
-        rgb[0::2, 1::2, 2] = blue
+        rgb[0::2, 1::2, 2] = blue 
 
         rgb_cv = cv2.cvtColor(bayer_8bits, cv2.COLOR_BAYER_RG2BGR)
 
         return rgb_cv
+    
+    def _add_noise_to_raw_image(self, raw_image, dark_current, noise_scaling_factor):
+
+        # Generate noise samples
+        #thermal_noise = np.random.normal(loc=0, scale=1, size=raw_image.shape)
+        shot_noise = np.random.poisson(lam=dark_current, size=raw_image.shape)
+
+        # Scale the noise samples based on dark current and scaling factor
+        #scaled_thermal_noise = noise_scaling_factor * thermal_noise
+        scaled_shot_noise = noise_scaling_factor * shot_noise
+
+        # Scale the noise samples to fit within the range of uint8 (0-255)
+        max_value = np.iinfo(np.uint8).max
+        min_value = np.iinfo(np.uint8).min
+
+        #scaled_thermal_noise = np.clip(scaled_thermal_noise, min_value, max_value)
+        scaled_shot_noise = np.clip(scaled_shot_noise, min_value, max_value)
+
+        # Add noise to the raw image
+        #noisy_raw_image = raw_image.astype(float) + scaled_thermal_noise + scaled_shot_noise
+        noisy_raw_image = raw_image.astype(float) + scaled_shot_noise
+
+        # Clip the resulting image to ensure values remain within the valid range
+        noisy_raw_image = np.clip(noisy_raw_image, min_value, max_value)
+
+        # Convert the image back to uint8 data type
+        noisy_raw_image = noisy_raw_image.astype(np.uint8)
+
+        return noisy_raw_image   
         
     def plot_color_image(self):
 
-        plt.imshow(self._rgb_image)
+        plt.imshow(self._image_noise)
         plt.show()

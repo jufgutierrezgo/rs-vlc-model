@@ -55,7 +55,8 @@ class Camera:
         image_width: float,        
         transmitter: Transmitter,
         surface: Surface,
-        sensor: str
+        sensor: str,
+        idark: float
             ) -> None:
 
         self._name = name
@@ -128,14 +129,24 @@ class Camera:
             # read text file into NumPy array
             self._quantum_efficiency = np.loadtxt(
                 Kt.SENSOR_PATH+"SonyStarvisBSI.txt")  
+        
+        self._idark = np.float32(idark)
+        if self._idark <= 0:
+            raise ValueError(
+                "Dark current curve must be float and non-negative.")
 
+        
+        # Initial code 
         self._pixel_area = (1/self._mx) * (1/self._my)
 
         self._projected_points, self._normal_camera = self._project_surface()
         # print("\n Projected Points onto image plane:")
         # print(self._projected_points)
         self._pixels_inside, self._points3d_inside = self._points_inside()        
-        self.plot_binary_image(self._pixels_inside, self._resolution_h, self._resolution_w)
+        self._binary_image = self.plot_binary_image(
+            self._pixels_inside, 
+            self._resolution_h, 
+            self._resolution_w)
         self._intersection_points = self._compute_intersection(
             self._points3d_inside, 
             self._centre,            
@@ -159,12 +170,11 @@ class Camera:
             height=self._resolution_h,
             width=self._resolution_w            
             )        
-        print(self._power_image)
+        # print(self._power_image)
         self._rgb_responsivity = self._compute_responsivity(
             self._quantum_efficiency
             )
-        self.plot_responsivity()
-
+        
         self._crosstalk = self._compute_crosstalk(
             spd_led=self._transmitter._spd_1lm,
             reflectance=self._surface._surface_reflectance,
@@ -181,7 +191,19 @@ class Camera:
         #    power=self._power_image,
         #    bayern=self._image_bayern
         #    )
-        
+
+    @property
+    def idark(self) -> float:
+        return self._idark
+
+    @idark.setter
+    def idark(self, idark):
+        self._idark = idark
+        if not (isinstance(self._idark, (float))) or self._idark <= 0:
+            raise ValueError(
+                "Dark current curve must be float and non-negative.")
+
+
     def _project_surface(self) -> np.ndarray:
 
         print("Projecting surface onto the image plane...")
@@ -404,6 +426,8 @@ class Camera:
         # plt.xlim([0, self._resolution_w])
         # plt.ylim([0, self._resolution_h])
         plt.show()
+
+        return binary_image
     
     def _grid3d_image_plane(self, dx, dy, origin) -> np.ndarray:
         """
@@ -444,11 +468,11 @@ class Camera:
         # Compute intersection point
         intersect = origin + t * d
         
-        print("Points 3D:")
-        print(points3d_inside)
+        # print("Points 3D:")
+        # print(points3d_inside)
 
-        print("Intersection camera --> surface points:")
-        print(intersect)
+        # print("Intersection camera --> surface points:")
+        # print(intersect)
 
         return intersect
         
@@ -484,26 +508,26 @@ class Camera:
             dist_cam.reshape((-1, 1))
             )
 
-        print("Diff:")
-        print(surface_points - pos_led)
-        print("Unit Vector LED")
-        print(unit_vled)
-        print("Distance")
-        print(dist_led)
+        # print("Diff:")
+        # print(surface_points - pos_led)
+        # print("Unit Vector LED")
+        # print(unit_vled)
+        # print("Distance")
+        # print(dist_led)
 
         cos_phi_led = (unit_vled).dot(n_led)
         cos_theta_surface = (-unit_vled).dot(n_surface)
         cos_phi_surface = (unit_vcam).dot(n_surface)
         cos_theta_pixel = (-unit_vcam).dot(n_cam)
 
-        print("Cos-Phi LED:")
-        print(cos_phi_led)
-        print("Cos-Theta Surface:")
-        print(cos_theta_surface)
-        print("Cos-Phi Surface:")
-        print(cos_phi_surface)
-        print("Cos-Theta Pixel:")
-        print(cos_theta_pixel)
+        # print("Cos-Phi LED:")
+        # print(cos_phi_led)
+        # print("Cos-Theta Surface:")
+        # print(cos_theta_surface)
+        # print("Cos-Phi Surface:")
+        # print(cos_phi_surface)
+        # print("Cos-Theta Pixel:")
+        # print(cos_theta_pixel)
 
         power_pixel = (luminous_flux)*(
             (m_lambert+1)/(2*np.pi*dist_led**2) *
@@ -516,8 +540,8 @@ class Camera:
             pixel_area
             )
         
-        print("Power in each pixel")
-        print(power_pixel)
+        # print("Power in each pixel")
+        # print(power_pixel)
 
         return power_pixel
 
@@ -565,7 +589,7 @@ class Camera:
 
         return power_image, no_blurred_image
      
-    def plot_power_image(self):
+    def plot_image_intensity(self):
         """ Plot the image of the received power. """
 
         normalized_power_image = self._power_image / np.max(self._power_image)       
