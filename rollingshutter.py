@@ -37,6 +37,9 @@ class RollingShutter:
     """
     This class defines the rolling shutter adquisition properties
     """    
+    
+    
+    
 
     def __init__(
         self,
@@ -45,6 +48,8 @@ class RollingShutter:
         t_rowdelay: float,
         t_start: float,
         iso: float,
+        adc_resolution: int,
+        gain_pixel: float,
         transmitter: Transmitter,
         camera: Camera        
             ) -> None:
@@ -71,6 +76,10 @@ class RollingShutter:
                 "The ISO must be integer non-negative."
                 )
         
+        self._adc_resolution = adc_resolution
+        self.MAX_ADC = 2 ** self._adc_resolution - 1
+        self.GAIN_PIXEL = gain_pixel
+
         self._transmitter = transmitter
         if not type(transmitter) is Transmitter:
             raise ValueError(
@@ -102,7 +111,7 @@ class RollingShutter:
         self._image_noise = self._add_noise_to_raw_image(
             raw_image=self._rgb_image,
             dark_current=camera.idark,
-            noise_scaling_factor=1e1
+            noise_scaling_factor=self.GAIN_PIXEL * self.MAX_ADC
         )
         
     def _compute_row_bins(self) -> np.ndarray:
@@ -198,33 +207,12 @@ class RollingShutter:
         """ Plot the image of the photocurrent by each pixel. """        
         
         # bayer = bayer / np.max(bayer)
-        bayer = 9e11 * bayer
-        print(np.max(bayer))
-        G_ISO = 255
+        bayer = self.MAX_ADC * self.GAIN_PIXEL * bayer
 
-        rgb = np.zeros((height, width, 3), dtype=np.uint8)
-        bayer_8bits = (G_ISO * bayer).astype(np.uint8)
-
-        # Green pixels
-        green1 = G_ISO * bayer[0::2, 0::2]
-        green2 = G_ISO * bayer[1::2, 1::2]
-
-        # Red pixels
-        red = G_ISO * bayer[1::2, 0::2]
-
-        # Blue pixels
-        blue = G_ISO * bayer[0::2, 1::2]
-
-        # Assign the green values to the green channel
-        rgb[0::2, 0::2, 1] = green1
-        rgb[1::2, 1::2, 1] = green2
-
-        # Assign the red values to the red channel
-        rgb[1::2, 0::2, 0] = red
-
-        # Assign the blue values to the blue channel
-        rgb[0::2, 1::2, 2] = blue 
-
+        print(np.max(bayer))       
+        
+        bayer_8bits = (bayer).astype(np.uint8)
+        
         rgb_cv = cv2.cvtColor(bayer_8bits, cv2.COLOR_BAYER_RG2BGR)
 
         return rgb_cv
@@ -233,25 +221,23 @@ class RollingShutter:
 
         # Generate noise samples
         #thermal_noise = np.random.normal(loc=0, scale=1, size=raw_image.shape)
-        shot_noise = np.random.poisson(lam=dark_current, size=raw_image.shape)
-
-        # Scale the noise samples based on dark current and scaling factor
-        #scaled_thermal_noise = noise_scaling_factor * thermal_noise
-        scaled_shot_noise = noise_scaling_factor * shot_noise
+        #shot_noise = np.random.poisson(lam=noise_scaling_factor*dark_current, size=raw_image.shape)        
+        thermal_noise = np.random.normal(loc=0, scale=noise_scaling_factor*dark_current, size=raw_image.shape)
 
         # Scale the noise samples to fit within the range of uint8 (0-255)
         max_value = np.iinfo(np.uint8).max
         min_value = np.iinfo(np.uint8).min
 
         #scaled_thermal_noise = np.clip(scaled_thermal_noise, min_value, max_value)
-        scaled_shot_noise = np.clip(scaled_shot_noise, min_value, max_value)
+        thermal_noise = np.clip(thermal_noise, min_value, max_value)       
+        
 
         # Add noise to the raw image
         #noisy_raw_image = raw_image.astype(float) + scaled_thermal_noise + scaled_shot_noise
-        noisy_raw_image = raw_image.astype(float) + scaled_shot_noise
+        noisy_raw_image = raw_image.astype(float) + thermal_noise
 
         # Clip the resulting image to ensure values remain within the valid range
-        noisy_raw_image = np.clip(noisy_raw_image, min_value, max_value)
+        #noisy_raw_image = np.clip(noisy_raw_image, min_value, max_value)
 
         # Convert the image back to uint8 data type
         noisy_raw_image = noisy_raw_image.astype(np.uint8)
@@ -261,4 +247,27 @@ class RollingShutter:
     def plot_color_image(self):
 
         plt.imshow(self._image_noise)
+        plt.title('RGB Image')        
+        plt.show()
+    
+    def add_blur(self, size=7, center=3.5, sigma=1.5) -> np.ndarray:    
+        """ This function applies the point spread function of the power image. """
+                
+        print("Adding blur effect ...")
+        # Apply Gaussian blur to the image
+        blurred_image = cv2.GaussianBlur(
+            self._image_noise,
+            (size, size),
+            sigma, sigma
+            )
+
+        self._blurred_image = blurred_image
+
+        return blurred_image        
+    
+    def plot_blurred_image(self) -> None:
+        """ Plot the original image and the blurred image """
+       
+        plt.imshow(self._blurred_image)
+        plt.title('Blurred image with PSF')        
         plt.show()

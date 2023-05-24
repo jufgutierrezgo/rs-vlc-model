@@ -598,33 +598,7 @@ class Camera:
         plt.imshow(normalized_power_image, cmap='gray', interpolation='nearest')
         plt.title("Image of the normalized received power")        
         plt.show()
-
-    def add_blur(self, size=7, center=3.5, sigma=1.5) -> np.ndarray:    
-        """ This function applies the point spread function of the power image. """
-        power_image = self._power_image
-        
-        print("Adding blur effect ...")
-        # Generate a 7x7 PSF with a normal distribution
-        x, y = np.meshgrid(np.arange(size), np.arange(size))        
-        psf = norm.pdf(np.sqrt((x-center)**2 + (y-center)**2), 0, sigma)
-        psf /= psf.sum()  # normalize the PSF to sum to 1
-
-        # Convolve the image with the PSF
-        blurred = signal.convolve2d(power_image, psf, mode='same')
-
-        self._power_image = blurred
-        return blurred
     
-    def plot_blurred_image(self) -> None:
-        """ Plot the original image and the blurred image """
-       
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
-        ax1.imshow(self._noblurred_image, cmap='gray')
-        ax1.set_title('Non-blurred image')
-        ax2.imshow(self._power_image, cmap='gray')
-        ax2.set_title('Blurred image with PSF')        
-        plt.show()
-
     def plot_quantum_efficiency(self) -> None:
         for i in range(Kt.NO_LEDS):
             plt.plot(        
@@ -657,13 +631,15 @@ class Camera:
         c = 299792458        # Speed of light (m/s)
         e = 1.602176634e-19  # Elementary charge (C)
 
-        # Define spectral quantum efficiency (QE) data
-        R[:, 0] = qe[:, 0] * 1e-9 # wavelength range from 400 to 700 nm
+        # Define wavelengths array according to the qe array [Agrawal]
+        wavelengths = qe[:, 0] * 1e-9 # wavelength range from 400 to 700 nm
+        R[:, 0] = wavelengths
 
         # Compute spectral responsivity
-        R[:, 1] = (R[:, 0] * qe[:, 1] * e) / (h * c)
-        R[:, 2] = (R[:, 0] * qe[:, 2] * e) / (h * c)
-        R[:, 3] = (R[:, 0] * qe[:, 3] * e) / (h * c)
+        R[:, 1] = (wavelengths * qe[:, 1] * e) / (h * c)
+        R[:, 2] = (wavelengths * qe[:, 2] * e) / (h * c)
+        R[:, 3] = (wavelengths * qe[:, 3] * e) / (h * c)
+        
 
         return R
 
