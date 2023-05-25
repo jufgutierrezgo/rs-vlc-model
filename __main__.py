@@ -41,20 +41,18 @@ print(surface)
 
 
 
-MX = 1/1e0  # number of pixels per unit distance in image coordinates in x direction
-MY = 1/1e0  # number of pixels per unit distance in image coordinates in y direction
-FOCAL_LENGTH = 1/MX  # focal length
+PIXEL_SIZE = 1
+MX = 1/PIXEL_SIZE  # number of pixels per unit distance in image coordinates in x direction
+MY = 1/PIXEL_SIZE  # number of pixels per unit distance in image coordinates in y direction
+FOCAL_LENGTH = 3  # focal length
 PX= 3/MX  # principal point x-coordinate
 PY= 2/MY  # principal point y-coordinate
 THETA_X = np.pi / 2.0  # roll angle
 THETA_Y = np.pi  # pitch angle
 THETA_Z = np.pi  # yaw angle
-C = np.array([3, 2, 2])  # camera centre
-IMAGE_HEIGTH = 4
+C = np.array([0, 0, 2])  # camera centre
+IMAGE_HEIGTH =4
 IMAGE_WIDTH = 6
-
-RESOLUTION_X = 600
-RESOLUTION_Y = 400
 
 camera = Camera(
     name="camera1",
@@ -69,14 +67,12 @@ camera = Camera(
     theta_z=THETA_Z,
     centre=C,
     image_height=IMAGE_HEIGTH,
-    image_width=IMAGE_WIDTH,  
-    resolution_x=RESOLUTION_X,
-    resolution_y=RESOLUTION_Y,  
+    image_width=IMAGE_WIDTH,    
     surface=surface,
     transmitter=transmitter,
     sensor='SonyStarvisBSI',
     idark=1e-14
 )
-
+camera.plot_responsivity()
 camera.plot_image_intensity()
 
