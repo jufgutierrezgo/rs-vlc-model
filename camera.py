@@ -43,6 +43,7 @@ class Camera:
         self,
         name: str,
         focal_length: float,
+        pixel_size: float,
         px: float,
         py: float,
         mx: float,
@@ -52,7 +53,9 @@ class Camera:
         theta_z: float,
         centre: np.ndarray,
         image_height: float,
-        image_width: float,        
+        image_width: float,
+        resolution_x: int,
+        resolution_y: int,        
         transmitter: Transmitter,
         surface: Surface,
         sensor: str,
@@ -65,6 +68,10 @@ class Camera:
         if self._focal_length <= 0:
             raise ValueError("The luminous flux must be non-negative.")
         
+        self._pixel_size = np.float32(pixel_size)        
+        if self._pixel_size <= 0:
+            raise ValueError("Pixel size must be non-negative.")
+
         # principal point x-coordinate
         self._px = px
         if self._px <= 0:
@@ -110,10 +117,10 @@ class Camera:
             raise ValueError("The IMAGE WIDTH must be non-negative.")
         
         # resolution height
-        self._resolution_h = int(self._image_height * self._my)
+        self._resolution_h = resolution_y
         
         # resolution width
-        self._resolution_w = int(self._image_width * self._mx)        
+        self._resolution_w = resolution_x
 
         self._surface = surface             
         if not type(surface) is Surface:
@@ -137,11 +144,11 @@ class Camera:
 
         
         # Initial code 
-        self._pixel_area = (1/self._mx) * (1/self._my)
+        self._pixel_area = (self._pixel_size ** 2)
 
         self._projected_points, self._normal_camera = self._project_surface()
-        # print("\n Projected Points onto image plane:")
-        # print(self._projected_points)
+        print("\n Projected Points onto image plane:")
+        print(self._projected_points)
         self._pixels_inside, self._points3d_inside = self._points_inside()        
         self._binary_image = self.plot_binary_image(
             self._pixels_inside, 
@@ -257,7 +264,8 @@ class Camera:
             dy=image_frame.dy*self._image_height/self._resolution_h,
             origin=image_frame.origin 
             )
-        
+        print("3D meshgrid onto the image plane")
+        print(self._grid3d_image)
         # fig = plt.figure(figsize=(6, 6))
         # ax = plt.axes(projection="3d")
         # ax.scatter(
@@ -314,15 +322,15 @@ class Camera:
         plt.tight_layout()
         plt.show()
 
-        fig = plt.figure(figsize=(self._image_width, self._image_height))
-        ax = fig.gca()
-        image.draw()
-        polygon_surface.draw(**projection_kwargs)        
+        # fig = plt.figure(figsize=(self._image_width, self._image_height))
+        # ax = fig.gca()
+        # image.draw()
+        # polygon_surface.draw(**projection_kwargs)        
         #square1.draw(**projection_kwargs)
         #square2.draw(**projection_kwargs, color="tab:purple")
-        ax.set_title("Projection of Squares in the Image")
-        plt.tight_layout()
-        plt.show()
+        # ax.set_title("Projection of Squares in the Image")
+        # plt.tight_layout()
+        # plt.show()
 
         return np.array(polygon_surface.x_list), camera_frame.dz
 

@@ -41,9 +41,9 @@ print(surface)
 
 
 
-MX = 1e2  # number of pixels per unit distance in image coordinates in x direction
-MY = 1e2  # number of pixels per unit distance in image coordinates in y direction
-FOCAL_LENGTH = 3/MX  # focal length
+MX = 1/1e0  # number of pixels per unit distance in image coordinates in x direction
+MY = 1/1e0  # number of pixels per unit distance in image coordinates in y direction
+FOCAL_LENGTH = 1/MX  # focal length
 PX= 3/MX  # principal point x-coordinate
 PY= 2/MY  # principal point y-coordinate
 THETA_X = np.pi / 2.0  # roll angle
@@ -53,9 +53,13 @@ C = np.array([3, 2, 2])  # camera centre
 IMAGE_HEIGTH = 4
 IMAGE_WIDTH = 6
 
+RESOLUTION_X = 600
+RESOLUTION_Y = 400
+
 camera = Camera(
     name="camera1",
     focal_length=FOCAL_LENGTH,
+    pixel_size=1/MX,
     px=PX,
     py=PY,
     mx=MX,
@@ -65,27 +69,14 @@ camera = Camera(
     theta_z=THETA_Z,
     centre=C,
     image_height=IMAGE_HEIGTH,
-    image_width=IMAGE_WIDTH,    
+    image_width=IMAGE_WIDTH,  
+    resolution_x=RESOLUTION_X,
+    resolution_y=RESOLUTION_Y,  
     surface=surface,
     transmitter=transmitter,
     sensor='SonyStarvisBSI',
     idark=1e-14
 )
+
 camera.plot_image_intensity()
-
-
-camera.idark = 5e-15
-rollingshutter = RS(
-    name="rs",
-    t_exposure=85e-6,
-    t_rowdelay=18.904e-6,
-    t_start=0,
-    iso=200,
-    transmitter=transmitter,
-    camera=camera
-)
-rollingshutter.plot_color_image()
-
-# rollingshutter.plot_current_image()
-
 

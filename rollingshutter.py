@@ -208,7 +208,9 @@ class RollingShutter:
         
         # bayer = bayer / np.max(bayer)
         bayer = self.MAX_ADC * self.GAIN_PIXEL * bayer
+        bayer[bayer > 255] = 255
 
+        print("Maximum value of Bayer image:")     
         print(np.max(bayer))       
         
         bayer_8bits = (bayer).astype(np.uint8)
