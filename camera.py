@@ -115,10 +115,12 @@ class Camera:
             raise ValueError("The IMAGE WIDTH must be non-negative.")
         
         # resolution height
-        self._resolution_h = int(self._image_height / self._pixel_size)
+        self._resolution_h = round(self._image_height)
+        
         
         # resolution width
-        self._resolution_w = int(self._image_width / self._pixel_size)        
+        self._resolution_w = round(self._image_width)        
+        
 
         self._surface = surface             
         if not type(surface) is Surface:
@@ -258,8 +260,8 @@ class Camera:
 
         # Create a 3D meshgrid onto the image plane
         self._grid3d_image = self._grid3d_image_plane(
-            dx=image_frame.dx*self._image_width/self._resolution_w, 
-            dy=image_frame.dy*self._image_height/self._resolution_h,
+            dx=image_frame.dx, 
+            dy=image_frame.dy,
             origin=image_frame.origin 
             )
         
@@ -319,6 +321,8 @@ class Camera:
         plt.tight_layout()
         plt.show()
 
+        polygon_surface.draw(**projection_kwargs)  
+        """
         fig = plt.figure(figsize=(self._image_width, self._image_height))
         ax = fig.gca()
         image.draw()
@@ -328,6 +332,7 @@ class Camera:
         ax.set_title("Projection of Squares in the Image")
         plt.tight_layout()
         plt.show()
+        """
 
         return np.array(polygon_surface.x_list), camera_frame.dz
 
@@ -336,18 +341,18 @@ class Camera:
         print("Computing the point's coordinates inside of the projected polygon ...")
         
         # Compute the size of each cell
-        pixel_size_x = self._image_width / self._resolution_w
-        pixel_size_y = self._image_height / self._resolution_h
+        pixel_size_x = self._pixel_size
+        pixel_size_y = self._pixel_size
 
         # Create a grid of cell centers
         pixel_centers_x = np.linspace(
-            pixel_size_x/2, 
-            self._image_width-pixel_size_x/2, 
+            1/2, 
+            self._image_width - 1/2, 
             self._resolution_w
             )
         pixel_centers_y = np.linspace(
-            pixel_size_y/2, 
-            self._image_height-pixel_size_y/2, 
+            1/2, 
+            self._image_height - 1/2, 
             self._resolution_h
             )
         
@@ -355,9 +360,9 @@ class Camera:
         
         # Display the cell centers
         # print("Pixel's center X (meshgrid):")
-        # print(pixel_centers_xx)
+        # print(pixel_centers_x)
         # print("Pixel's center Y  (meshgrid):")
-        # print(pixel_centers_yy)
+        #print(pixel_centers_y)
 
         # poly_vertices = np.array([[1, 1], [3, 1], [3, 3], [1, 3]])
         # print("Pixel's center X:")
