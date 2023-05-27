@@ -48,8 +48,9 @@ class RollingShutter:
         t_rowdelay: float,
         t_start: float,
         iso: float,
-        adc_resolution: int,
+        adc_resolution: int,        
         gain_pixel: float,
+        temperature: float,
         transmitter: Transmitter,
         camera: Camera        
             ) -> None:
@@ -63,6 +64,7 @@ class RollingShutter:
         self._t_rowdelay = np.float32(t_rowdelay)        
         if self._t_rowdelay <= 0:
             raise ValueError("The row delay time must be a float non-negative.")
+        self._bandwidth = 1/self._t_rowdelay
 
         self._t_start = np.float32(t_start)        
         if self._t_rowdelay <= 0:
@@ -79,6 +81,8 @@ class RollingShutter:
         self._adc_resolution = adc_resolution
         self.MAX_ADC = 2 ** self._adc_resolution - 1
         self.GAIN_PIXEL = gain_pixel
+        
+        self._temperature = temperature
 
         self._transmitter = transmitter
         if not type(transmitter) is Transmitter:
@@ -219,8 +223,12 @@ class RollingShutter:
 
         return rgb_cv
     
-    def _add_noise_to_raw_image(self, raw_image, dark_current, noise_scaling_factor):
+    def _add_noise_to_raw_image(self, raw_image, idark, gain, B, T):
+        
+            
 
+        thermal_sigma = 4 * Kt.KB * T * B / gain
+        shot_sima = 
         # Generate noise samples
         #thermal_noise = np.random.normal(loc=0, scale=1, size=raw_image.shape)
         #shot_noise = np.random.poisson(lam=noise_scaling_factor*dark_current, size=raw_image.shape)        

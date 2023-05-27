@@ -1,3 +1,4 @@
+
 from constants import Constants as Kt
 
 # numeric numpy library
@@ -637,9 +638,9 @@ class Camera:
         R = np.zeros_like(qe)
 
         # Define constants
-        h = 6.62607015e-34   # Planck's constant (J.s)
-        c = 299792458        # Speed of light (m/s)
-        e = 1.602176634e-19  # Elementary charge (C)
+        h = Kt.H    # Planck's constant (J.s)
+        c = Kt.SPEED_OF_LIGHT        # Speed of light (m/s)
+        e = Kt.QE  # Elementary charge (C)
 
         # Define wavelengths array according to the qe array [Agrawal]
         wavelengths = qe[:, 0] * 1e-9 # wavelength range from 400 to 700 nm
