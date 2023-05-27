@@ -57,8 +57,7 @@ class Camera:
         image_width: float,        
         transmitter: Transmitter,
         surface: Surface,
-        sensor: str,
-        idark: float
+        sensor: str
             ) -> None:
 
         self._name = name
@@ -136,13 +135,7 @@ class Camera:
         if sensor == 'SonyStarvisBSI':
             # read text file into NumPy array
             self._quantum_efficiency = np.loadtxt(
-                Kt.SENSOR_PATH+"SonyStarvisBSI.txt")  
-        
-        self._idark = np.float32(idark)
-        if self._idark <= 0:
-            raise ValueError(
-                "Dark current curve must be float and non-negative.")
-
+                Kt.SENSOR_PATH+"SonyStarvisBSI.txt")         
         
         # Initial code 
         self._pixel_area = (1/self._mx) * (1/self._my)
