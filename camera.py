@@ -137,9 +137,26 @@ class Camera:
             self._quantum_efficiency = np.loadtxt(
                 Kt.SENSOR_PATH+"SonyStarvisBSI.txt")         
         
-        # Initial code 
-        self._pixel_area = (1/self._mx) * (1/self._my)
+        # -------------- I N I T I A L - C O D E -------------------         
+        self._pixel_area = (1/self._mx) * (1/self._my)                
+        self._rgb_responsivity = self._compute_responsivity(
+                self._quantum_efficiency
+                ) 
+        
+    @property
+    def idark(self) -> float:
+        return self._idark
 
+    @idark.setter
+    def idark(self, idark):
+        self._idark = idark
+        if not (isinstance(self._idark, (float))) or self._idark <= 0:
+            raise ValueError(
+                "Dark current curve must be float and non-negative.")
+
+    def take_picture(self) -> np.ndarray:
+        """This function computes the projected image on the image sensor and
+        computes the intensity distribution."""    
         self._projected_points, self._normal_camera = self._project_surface()
         # print("\n Projected Points onto image plane:")
         # print(self._projected_points)
@@ -170,12 +187,7 @@ class Camera:
             pixels_inside=self._pixels_inside,
             height=self._resolution_h,
             width=self._resolution_w            
-            )        
-        # print(self._power_image)
-        self._rgb_responsivity = self._compute_responsivity(
-            self._quantum_efficiency
-            )
-        
+            )                    
         self._crosstalk = self._compute_crosstalk(
             spd_led=self._transmitter._spd_1lm,
             reflectance=self._surface._surface_reflectance,
@@ -187,23 +199,6 @@ class Camera:
             height=self._resolution_h,
             width=self._resolution_w
             )
-        
-        # self._image_current = self._compute_image_current(
-        #    power=self._power_image,
-        #    bayern=self._image_bayern
-        #    )
-
-    @property
-    def idark(self) -> float:
-        return self._idark
-
-    @idark.setter
-    def idark(self, idark):
-        self._idark = idark
-        if not (isinstance(self._idark, (float))) or self._idark <= 0:
-            raise ValueError(
-                "Dark current curve must be float and non-negative.")
-
 
     def _project_surface(self) -> np.ndarray:
 

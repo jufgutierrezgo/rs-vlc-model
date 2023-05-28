@@ -74,6 +74,9 @@ class Transmitter:
         elif self._modulation == 'ieee4':
             self._constellation = Kt.IEEE_4CSK
             self._order_csk = 4
+        elif self._modulation == 'warm-16':
+            self._constellation = Kt.WARM_16CSK
+            self._order_csk = 16
         else:
             raise ValueError("Modulation is not valid.")
 
@@ -101,7 +104,8 @@ class Transmitter:
         self._compute_iler(self._spd_1w)
         self._avg_power_color()
         self._create_spd_1lm()
-        self._create_symbols()
+        # self._create_random_symbols()
+        self._create_test_symbols()
 
     @property
     def name(self) -> str:
@@ -341,7 +345,7 @@ class Transmitter:
         # Manual setted of avg_power by each color channels
         #self._avg_power = np.array([1, 1, 1])
 
-    def _create_symbols(self) -> None:
+    def _create_random_symbols(self) -> None:
         """
         This function creates the symbols array to transmit.
         """
@@ -371,3 +375,22 @@ class Transmitter:
                 self._symbols_payload),
                 axis=1
             )
+    
+    def _create_test_symbols(self) -> None:
+        """ This function create a symbol test frame """
+        
+        # Create the elementary frame
+        elementary_frame = np.array(
+            [15, 5, 10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            )
+        
+        # create a random symbols identifier (decimal) for payload
+        self._symbols_decimal = np.tile(elementary_frame, 8)
+
+        # create an array with the symbols
+        self._symbols_csk = np.zeros((Kt.NO_LEDS, len(self._symbols_decimal)))
+
+        for index, counter in zip(self._symbols_decimal, range(len(self._symbols_decimal))):
+            self._symbols_csk[:, counter] = self._constellation[:, index]        
+
+

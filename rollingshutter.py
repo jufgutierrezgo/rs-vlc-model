@@ -230,7 +230,7 @@ class RollingShutter:
         print(thermal_sigma2, shot_sigma2)
 
         # Computes total sigma
-        sigma = gain * (thermal_sigma2 + shot_sigma2) ** 1/2
+        sigma = (gain * (thermal_sigma2 + shot_sigma2)) ** 0.5
 
         # Generate noise samples        
         noise = np.random.normal(loc=0, scale=sigma, size=raw_image.shape)
