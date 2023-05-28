@@ -210,6 +210,7 @@ class Transmitter:
             f'ILER [W/lm]: \n {self._iler_matrix} \n'
             f'Average Power per Channel Color: \n {self._luminous_flux*self._avg_power} \n'
             f'Total Power emmited by the Transmitter [W]: \n {self._total_power} \n'
+            f'Color Temperature: \n {self._cct}'
             
         )
 
@@ -393,4 +394,36 @@ class Transmitter:
         for index, counter in zip(self._symbols_decimal, range(len(self._symbols_decimal))):
             self._symbols_csk[:, counter] = self._constellation[:, index]        
 
+    def _compute_cct_cri(self) -> None:
+        """ This function calculates a CCT and CRI of the QLED SPD."""
 
+        # Computing the xyz coordinates from SPD-RGBY estimated spectrum
+        self._XYZ_uppper = lx.spd_to_xyz(
+            [
+                self._array_wavelenghts,
+                self._spd_1lm
+            ])
+
+        # Example of xyx with D65 illuminant     
+        # self._xyz = lx.spd_to_xyz(
+        #    lx._CIE_ILLUMINANTS['D65']
+        #    )
+
+        self._xyz = self._XYZ_uppper/np.sum(self._XYZ_uppper)
+
+        # Computing the CRI coordinates from SPD-RGBY estimated spectrum
+        self._cri = lx.cri.spd_to_cri(
+            np.vstack(
+                    [
+                        self.wavelenght,
+                        self._spd_total/self._photodetector.area
+
+                    ]
+                )
+            )
+        
+        # Example of CRI for D65 illuminant
+        # self._cri = lx.cri.spd_to_cri(lx._CIE_ILLUMINANTS['D65'])
+
+        # Computing the CCT coordinates from SPD-RGBY estimated spectrum
+        self._cct = lx.xyz_to_cct_ohno2014(self._xyz)
