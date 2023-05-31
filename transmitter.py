@@ -77,6 +77,9 @@ class Transmitter:
         elif self._modulation == 'warm-16':
             self._constellation = Kt.WARM_16CSK
             self._order_csk = 16
+        elif self._modulation == 'white-16':
+            self._constellation = Kt.WHITE_16CSK
+            self._order_csk = 16
         else:
             raise ValueError("Modulation is not valid.")
 
@@ -106,6 +109,7 @@ class Transmitter:
         self._create_spd_1lm()
         # self._create_random_symbols()
         self._create_test_symbols()
+        self._compute_cct_cri()
 
     @property
     def name(self) -> str:
@@ -401,7 +405,7 @@ class Transmitter:
         self._XYZ_uppper = lx.spd_to_xyz(
             [
                 self._array_wavelenghts,
-                self._spd_1lm
+                np.sum(self._spd_1lm, axis=1)
             ])
 
         # Example of xyx with D65 illuminant     
@@ -415,8 +419,8 @@ class Transmitter:
         self._cri = lx.cri.spd_to_cri(
             np.vstack(
                     [
-                        self.wavelenght,
-                        self._spd_total/self._photodetector.area
+                        self._array_wavelenghts,
+                        np.sum(self._spd_1lm, axis=1)
 
                     ]
                 )

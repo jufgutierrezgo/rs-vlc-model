@@ -157,6 +157,7 @@ class Camera:
     def take_picture(self) -> np.ndarray:
         """This function computes the projected image on the image sensor and
         computes the intensity distribution."""    
+        
         self._projected_points, self._normal_camera = self._project_surface()
         # print("\n Projected Points onto image plane:")
         # print(self._projected_points)
