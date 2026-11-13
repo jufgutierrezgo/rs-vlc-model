@@ -676,8 +676,8 @@ class Camera:
         for i in range(Kt.NO_LEDS):
             for j in range(Kt.NO_DETECTORS):
                 H[j, i] = np.sum(
-                    spd_led[:, i] * 
-                    reflectance[:, 1] * 
+                    spd_led[:, i] *
+                    reflectance[:, 1] *
                     channel_response[:, j+1]
                 )
 

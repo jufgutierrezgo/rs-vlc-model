@@ -37,9 +37,7 @@ class RollingShutter:
     """
     This class defines the rolling shutter adquisition properties
     """    
-    
-    
-    
+           
 
     def __init__(
         self,
